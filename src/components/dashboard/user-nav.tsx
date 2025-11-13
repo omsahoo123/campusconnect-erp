@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -15,16 +16,21 @@ import { useCurrentUser, type UserRole } from "@/hooks/use-current-user";
 import { userProfiles } from "@/lib/data";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/firebase";
+import { signOut } from "firebase/auth";
 
 export function UserNav() {
   const router = useRouter();
   const { role } = useCurrentUser();
+  const auth = useAuth();
 
-  const handleLogout = () => {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem("userRole");
-      window.dispatchEvent(new Event("roleChanged"));
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
       router.push("/login");
+    } catch (error) {
+      console.error("Logout failed:", error);
     }
   };
 
@@ -60,8 +66,8 @@ export function UserNav() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem>Profile</DropdownMenuItem>
-          <DropdownMenuItem>Settings</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => router.push('/dashboard/settings')}>Profile</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => router.push('/dashboard/settings')}>Settings</DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleLogout}>

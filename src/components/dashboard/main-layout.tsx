@@ -1,16 +1,24 @@
+
 "use client";
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { SidebarProvider, Sidebar, SidebarInset, SidebarHeader, SidebarTrigger } from "@/components/ui/sidebar";
 import { SidebarNav } from "./sidebar-nav";
 import { UserNav } from "./user-nav";
 import { Icons } from '../icons';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 export function MainLayout({ children }: { children: React.ReactNode }) {
   const { role, isLoaded } = useCurrentUser();
   const pathname = usePathname();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isLoaded && !role) {
+      router.push("/login");
+    }
+  }, [role, isLoaded, router]);
 
   const getPageTitle = () => {
     if (pathname.startsWith('/dashboard/staff/')) return "Staff Profile";
@@ -19,6 +27,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
     if (pathname.startsWith('/dashboard/admissions')) return "Admissions";
     if (pathname.startsWith('/dashboard/staff')) return "Staff";
     if (pathname.startsWith('/dashboard/applications')) return "Applications";
+    if (pathname.startsWith('/dashboard/settings')) return "Settings";
     return "Dashboard";
   }
 

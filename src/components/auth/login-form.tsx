@@ -27,40 +27,69 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useAuth } from "@/firebase";
+import { signInWithEmailAndPassword } from "firebase/auth";
 
 export function LoginForm() {
   const router = useRouter();
   const { toast } = useToast();
+  const auth = useAuth();
   const [selectedRole, setSelectedRole] = useState<UserRole>("student");
   const [email, setEmail] = useState(userProfiles.student.email);
   const [password, setPassword] = useState("password");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleRoleChange = (role: UserRole) => {
     setSelectedRole(role);
     setEmail(userProfiles[role].email);
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
 
-    const userRole = (Object.keys(userProfiles) as UserRole[]).find(
+    // This is a mock check for the selected role based on email.
+    // In a real app, you'd likely get the role from your backend after successful Firebase login.
+    const expectedRoleForEmail = (Object.keys(userProfiles) as UserRole[]).find(
       (role) => userProfiles[role].email === email
     );
 
-    if (userRole && userRole === selectedRole) {
-      if (typeof window !== "undefined") {
-        localStorage.setItem("userRole", userRole);
-        window.dispatchEvent(new Event("roleChanged"));
-        router.push("/dashboard");
+    if (expectedRoleForEmail !== selectedRole) {
+      toast({
+        variant: "destructive",
+        title: "Login Failed",
+        description: "Invalid credentials for the selected role.",
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      // Let the onAuthStateChanged listener and useCurrentUser hook handle the redirect
+      router.push("/dashboard");
+    } catch (error) {
+      console.error("Login failed:", error);
+      let description = "An unexpected error occurred.";
+      if (error instanceof Error && 'code' in error) {
+        switch ((error as {code: string}).code) {
+          case 'auth/user-not-found':
+          case 'auth/wrong-password':
+          case 'auth/invalid-credential':
+            description = "Invalid email or password.";
+            break;
+        }
       }
-    } else {
-        toast({
-            variant: "destructive",
-            title: "Login Failed",
-            description: "Invalid credentials for the selected role.",
-        });
+      toast({
+        variant: "destructive",
+        title: "Login Failed",
+        description,
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
+
 
   return (
     <Card className="w-full max-w-sm">
@@ -110,7 +139,9 @@ export function LoginForm() {
           </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
-          <Button type="submit" className="w-full bg-primary hover:bg-primary/90">Sign In</Button>
+          <Button type="submit" className="w-full bg-primary hover:bg-primary/90" disabled={isLoading}>
+            {isLoading ? <Icons.spinner className="animate-spin" /> : "Sign In"}
+          </Button>
           <Separator className="my-2" />
             <div className="w-full space-y-2 text-center">
                 <p className="text-sm text-muted-foreground">Are you a new applicant?</p>
@@ -128,3 +159,4 @@ export function LoginForm() {
     </Card>
   );
 }
+
