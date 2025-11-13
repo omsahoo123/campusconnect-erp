@@ -34,8 +34,8 @@ export function LoginForm() {
   const router = useRouter();
   const { toast } = useToast();
   const auth = useAuth();
-  const [selectedRole, setSelectedRole] = useState<UserRole>("student");
-  const [email, setEmail] = useState(userProfiles.student.email);
+  const [selectedRole, setSelectedRole] = useState<UserRole>("admin");
+  const [email, setEmail] = useState(userProfiles.admin.email);
   const [password, setPassword] = useState("password");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -60,7 +60,7 @@ export function LoginForm() {
           case 'auth/user-not-found':
           case 'auth/wrong-password':
           case 'auth/invalid-credential':
-            description = "Invalid email or password.";
+            description = "Invalid email or password. Please ensure test users are created in Firebase Authentication.";
             break;
         }
       }
