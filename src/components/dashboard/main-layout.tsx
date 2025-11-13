@@ -16,6 +16,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
     if (pathname.startsWith('/dashboard/students/')) return "Student Profile";
     if (pathname.startsWith('/dashboard/students')) return "Students";
     if (pathname.startsWith('/dashboard/admissions')) return "Admissions";
+    if (pathname.startsWith('/dashboard/staff')) return "Staff";
     return "Dashboard";
   }
 

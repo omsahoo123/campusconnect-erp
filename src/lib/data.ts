@@ -24,21 +24,21 @@ export const userProfiles: Record<UserRole, { name: string; email: string; avata
 };
 
 export const studentsData = [
-  { id: "STU001", name: "Liam Smith", email: "liam.smith@example.com", joinDate: "2023-01-15", status: "Active" },
-  { id: "STU002", name: "Olivia Brown", email: "olivia.brown@example.com", joinDate: "2023-01-15", status: "Active" },
-  { id: "STU003", name: "Noah Jones", email: "noah.jones@example.com", joinDate: "2023-02-01", status: "Inactive" },
-  { id: "STU004", name: "Emma Garcia", email: "emma.garcia@example.com", joinDate: "2023-02-01", status: "Active" },
-  { id: "STU005", name: "Oliver Miller", email: "oliver.miller@example.com", joinDate: "2023-03-10", status: "Active" },
-  { id: "STU006", name: "Ava Davis", email: "ava.davis@example.com", joinDate: "2023-03-10", status: "Suspended" },
-  { id: "STU007", name: "Elijah Rodriguez", email: "e.rodriguez@example.com", joinDate: "2023-04-05", status: "Active" },
-  { id: "STU008", name: "Sophia Wilson", email: "sophia.wilson@example.com", joinDate: "2023-04-05", status: "Active" },
+  { id: "STU001", name: "Liam Smith", email: "liam.smith@example.com", joinDate: "2023-01-15", status: "Active" as const },
+  { id: "STU002", name: "Olivia Brown", email: "olivia.brown@example.com", joinDate: "2023-01-15", status: "Active" as const },
+  { id: "STU003", name: "Noah Jones", email: "noah.jones@example.com", joinDate: "2023-02-01", status: "Inactive" as const },
+  { id: "STU004", name: "Emma Garcia", email: "emma.garcia@example.com", joinDate: "2023-02-01", status: "Active" as const },
+  { id: "STU005", name: "Oliver Miller", email: "oliver.miller@example.com", joinDate: "2023-03-10", status: "Active" as const },
+  { id: "STU006", name: "Ava Davis", email: "ava.davis@example.com", joinDate: "2023-03-10", status: "Suspended" as const },
+  { id: "STU007", name: "Elijah Rodriguez", email: "e.rodriguez@example.com", joinDate: "2023-04-05", status: "Active" as const },
+  { id: "STU008", name: "Sophia Wilson", email: "sophia.wilson@example.com", joinDate: "2023-04-05", status: "Active" as const },
 ];
 
-export const teachersData = [
-  { id: "TCH01", name: "Dr. Evelyn Reed", department: "Computer Science", email: "e.reed@campus.edu", status: "Active" },
-  { id: "TCH02", name: "Mr. Benjamin Carter", department: "Mathematics", email: "b.carter@campus.edu", status: "Active" },
-  { id: "TCH03", name: "Ms. Isabella Chen", department: "Physics", email: "i.chen@campus.edu", status: "On Leave" },
-  { id: "TCH04", name: "Prof. Samuel Green", department: "History", email: "s.green@campus.edu", status: "Active" },
+export const staffData = [
+  { id: "TCH01", name: "Dr. Evelyn Reed", department: "Computer Science", email: "e.reed@campus.edu", status: "Active" as const },
+  { id: "TCH02", name: "Mr. Benjamin Carter", department: "Mathematics", email: "b.carter@campus.edu", status: "Active" as const },
+  { id: "TCH03", name: "Ms. Isabella Chen", department: "Physics", email: "i.chen@campus.edu", status: "On Leave" as const },
+  { id: "TCH04", name: "Prof. Samuel Green", department: "History", email: "s.green@campus.edu", status: "Active" as const },
 ];
 
 export const feeCollectionData = [
