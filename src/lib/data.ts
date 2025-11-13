@@ -1,3 +1,4 @@
+
 import type { UserRole } from "@/hooks/use-current-user";
 
 export const userProfiles: Record<UserRole, { name: string; email: string; avatar: string }> = {
@@ -13,12 +14,12 @@ export const userProfiles: Record<UserRole, { name: string; email: string; avata
   },
   student: {
     name: "Alex Johnson",
-    email: "a.johnson@campus.edu",
+    email: "student@campus.edu",
     avatar: "/avatars/03.png",
   },
   finance: {
     name: "Carol White",
-    email: "c.white@campus.edu",
+    email: "finance@campus.edu",
     avatar: "/avatars/04.png",
   },
 };
@@ -32,6 +33,7 @@ export const studentsData = [
   { id: "STU006", name: "Ava Davis", email: "ava.davis@example.com", joinDate: "2023-03-10", status: "Suspended" as const },
   { id: "STU007", name: "Elijah Rodriguez", email: "e.rodriguez@example.com", joinDate: "2023-04-05", status: "Active" as const },
   { id: "STU008", name: "Sophia Wilson", email: "sophia.wilson@example.com", joinDate: "2023-04-05", status: "Active" as const },
+  { id: "STU009", name: "Alex Johnson", email: "student@campus.edu", joinDate: "2023-05-20", status: "Active" as const}
 ];
 
 export const staffData = [
@@ -39,6 +41,7 @@ export const staffData = [
   { id: "TCH02", name: "Mr. Benjamin Carter", department: "Mathematics", email: "b.carter@campus.edu", status: "Active" as const },
   { id: "TCH03", name: "Ms. Isabella Chen", department: "Physics", email: "i.chen@campus.edu", status: "On Leave" as const },
   { id: "TCH04", name: "Prof. Samuel Green", department: "History", email: "s.green@campus.edu", status: "Active" as const },
+  { id: "TCH05", name: "Dr. Eleanor Vance", department: "Physics", email: "e.vance@campus.edu", status: "Active" as const }
 ];
 
 export const feeCollectionData = [

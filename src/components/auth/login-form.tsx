@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -13,28 +14,38 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import type { UserRole } from "@/hooks/use-current-user";
-import { Icons } from "@/components/icons";
+import { Icons } from "@/components/ui/icons";
 import { Separator } from "../ui/separator";
 import Link from "next/link";
+import { userProfiles } from "@/lib/data";
+import { useToast } from "@/hooks/use-toast";
 
 export function LoginForm() {
   const router = useRouter();
-  const [role, setRole] = useState<UserRole>("student");
+  const { toast } = useToast();
+  const [email, setEmail] = useState("student@campus.edu");
+  const [password, setPassword] = useState("password");
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (typeof window !== "undefined") {
-      localStorage.setItem("userRole", role);
-      window.dispatchEvent(new Event("roleChanged"));
-      router.push("/dashboard");
+
+    const userRole = (Object.keys(userProfiles) as UserRole[]).find(
+      (role) => userProfiles[role].email === email
+    );
+
+    if (userRole) {
+      if (typeof window !== "undefined") {
+        localStorage.setItem("userRole", userRole);
+        window.dispatchEvent(new Event("roleChanged"));
+        router.push("/dashboard");
+      }
+    } else {
+        toast({
+            variant: "destructive",
+            title: "Login Failed",
+            description: "Invalid email or password.",
+        });
     }
   };
 
@@ -51,26 +62,36 @@ export function LoginForm() {
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" placeholder="user@campus.edu" defaultValue="user@campus.edu" required />
+            <Input 
+              id="email" 
+              type="email" 
+              placeholder="user@campus.edu" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required 
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" required defaultValue="password" />
+            <Input 
+              id="password" 
+              type="password" 
+              required 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="role">Role (for demo)</Label>
-            <Select onValueChange={(value) => setRole(value as UserRole)} defaultValue={role}>
-              <SelectTrigger id="role" className="w-full">
-                <SelectValue placeholder="Select a role" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="teacher">Teacher</SelectItem>
-                <SelectItem value="student">Student</SelectItem>
-                <SelectItem value="finance">Finance</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+           <div className="pt-2">
+            <p className="text-xs text-center text-muted-foreground">
+              Use one of the following emails for demo:
+            </p>
+            <ul className="text-xs text-center text-muted-foreground">
+                <li><span className="font-semibold">admin:</span> admin@campus.edu</li>
+                <li><span className="font-semibold">teacher:</span> e.vance@campus.edu</li>
+                <li><span className="font-semibold">student:</span> student@campus.edu</li>
+                <li><span className="font-semibold">finance:</span> finance@campus.edu</li>
+            </ul>
+           </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
           <Button type="submit" className="w-full bg-primary hover:bg-primary/90">Sign In</Button>
