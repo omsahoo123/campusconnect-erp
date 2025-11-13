@@ -60,7 +60,7 @@ export function LoginForm() {
           case 'auth/user-not-found':
           case 'auth/wrong-password':
           case 'auth/invalid-credential':
-            description = "Invalid email or password. Please ensure test users are created in Firebase Authentication.";
+            description = "Invalid email or password. Please ensure the test user has been created in the Firebase Authentication console. See README.md for details.";
             break;
         }
       }
