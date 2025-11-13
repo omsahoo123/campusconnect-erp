@@ -1,16 +1,15 @@
-"use client";
 
 import { studentsData } from "@/lib/data";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Mail, Phone, Calendar as CalendarIcon, ArrowLeft } from "lucide-react";
-import { notFound, useRouter } from "next/navigation";
+import { notFound } from "next/navigation";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export default function StudentProfilePage({ params }: { params: { studentId: string } }) {
-  const router = useRouter();
   const student = studentsData.find(s => s.id === params.studentId);
 
   if (!student) {
@@ -25,9 +24,11 @@ export default function StudentProfilePage({ params }: { params: { studentId: st
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Button variant="outline" size="icon" onClick={() => router.back()}>
-          <ArrowLeft className="h-4 w-4" />
-          <span className="sr-only">Back</span>
+        <Button variant="outline" size="icon" asChild>
+          <Link href="/dashboard/students">
+            <ArrowLeft className="h-4 w-4" />
+            <span className="sr-only">Back</span>
+          </Link>
         </Button>
       </div>
 

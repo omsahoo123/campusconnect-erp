@@ -1,16 +1,15 @@
-"use client";
 
 import { staffData } from "@/lib/data";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Mail, Phone, Briefcase, ArrowLeft } from "lucide-react";
-import { notFound, useRouter } from "next/navigation";
+import { notFound } from "next/navigation";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export default function StaffProfilePage({ params }: { params: { staffId: string } }) {
-  const router = useRouter();
   const staff = staffData.find(s => s.id === params.staffId);
 
   if (!staff) {
@@ -26,9 +25,11 @@ export default function StaffProfilePage({ params }: { params: { staffId: string
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Button variant="outline" size="icon" onClick={() => router.back()}>
-          <ArrowLeft className="h-4 w-4" />
-          <span className="sr-only">Back</span>
+        <Button variant="outline" size="icon" asChild>
+          <Link href="/dashboard/staff">
+            <ArrowLeft className="h-4 w-4" />
+            <span className="sr-only">Back</span>
+          </Link>
         </Button>
       </div>
 
