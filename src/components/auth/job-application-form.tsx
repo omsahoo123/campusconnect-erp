@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { CalendarIcon, User, Briefcase, Mail, Phone } from "lucide-react"
+import { useEffect } from "react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -27,8 +28,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
 import { Textarea } from "../ui/textarea"
-import { useFirestore } from "@/firebase"
-import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates"
+import { useAuth, useFirestore, useUser } from "@/firebase"
+import { addDocumentNonBlocking, initiateAnonymousSignIn } from "@/firebase"
 import { collection } from "firebase/firestore"
 
 
@@ -59,6 +60,14 @@ const formSchema = z.object({
 export function JobApplicationForm() {
   const { toast } = useToast()
   const firestore = useFirestore();
+  const auth = useAuth();
+  const { user, isUserLoading } = useUser();
+
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      initiateAnonymousSignIn(auth);
+    }
+  }, [user, isUserLoading, auth]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
