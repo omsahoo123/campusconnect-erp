@@ -22,6 +22,8 @@ import {
 } from "@/components/ui/select";
 import type { UserRole } from "@/hooks/use-current-user";
 import { Icons } from "@/components/icons";
+import { Separator } from "../ui/separator";
+import Link from "next/link";
 
 export function LoginForm() {
   const router = useRouter();
@@ -70,8 +72,20 @@ export function LoginForm() {
             </Select>
           </div>
         </CardContent>
-        <CardFooter className="flex flex-col">
+        <CardFooter className="flex flex-col gap-4">
           <Button type="submit" className="w-full bg-primary hover:bg-primary/90">Sign In</Button>
+          <Separator className="my-2" />
+            <div className="w-full space-y-2 text-center">
+                <p className="text-sm text-muted-foreground">Are you a new applicant?</p>
+                <div className="flex justify-center gap-4">
+                    <Button variant="outline" asChild>
+                        <Link href="/admissions">Student Admission</Link>
+                    </Button>
+                    <Button variant="outline" asChild>
+                        <Link href="/apply">Teacher Application</Link>
+                    </Button>
+                </div>
+            </div>
         </CardFooter>
       </form>
     </Card>
