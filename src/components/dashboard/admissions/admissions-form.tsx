@@ -45,7 +45,19 @@ const formSchema = z.object({
   course: z.string({ required_error: "Please select a course." }),
   emergencyContactName: z.string().min(2, "Name is required."),
   emergencyContactPhone: z.string().min(10, "Phone number is required."),
-})
+}).refine(data => {
+    const today = new Date();
+    const birthDate = new Date(data.dob);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+    }
+    return age >= 15;
+}, {
+    message: "Student must be at least 15 years old.",
+    path: ["dob"],
+});
 
 export function AdmissionsForm() {
   const { toast } = useToast()

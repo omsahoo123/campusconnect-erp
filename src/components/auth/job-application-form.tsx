@@ -44,7 +44,19 @@ const formSchema = z.object({
   qualification: z.string().min(2, { message: "Qualification is required." }),
   experience: z.string().min(1, { message: "Years of experience is required." }),
   coverLetter: z.string().min(20, { message: "Cover letter must be at least 20 characters." }),
-})
+}).refine(data => {
+    const today = new Date();
+    const birthDate = new Date(data.dob);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+    }
+    return age >= 20;
+}, {
+    message: "Applicant must be at least 20 years old.",
+    path: ["dob"],
+});
 
 export function JobApplicationForm() {
   const { toast } = useToast()
