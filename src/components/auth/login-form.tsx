@@ -20,12 +20,25 @@ import { Separator } from "../ui/separator";
 import Link from "next/link";
 import { userProfiles } from "@/lib/data";
 import { useToast } from "@/hooks/use-toast";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export function LoginForm() {
   const router = useRouter();
   const { toast } = useToast();
-  const [email, setEmail] = useState("student@campus.edu");
+  const [selectedRole, setSelectedRole] = useState<UserRole>("student");
+  const [email, setEmail] = useState(userProfiles.student.email);
   const [password, setPassword] = useState("password");
+
+  const handleRoleChange = (role: UserRole) => {
+    setSelectedRole(role);
+    setEmail(userProfiles[role].email);
+  };
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,7 +47,7 @@ export function LoginForm() {
       (role) => userProfiles[role].email === email
     );
 
-    if (userRole) {
+    if (userRole && userRole === selectedRole) {
       if (typeof window !== "undefined") {
         localStorage.setItem("userRole", userRole);
         window.dispatchEvent(new Event("roleChanged"));
@@ -44,7 +57,7 @@ export function LoginForm() {
         toast({
             variant: "destructive",
             title: "Login Failed",
-            description: "Invalid email or password.",
+            description: "Invalid credentials for the selected role.",
         });
     }
   };
@@ -60,6 +73,20 @@ export function LoginForm() {
           <CardDescription>Sign in to access your dashboard</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="space-y-2">
+              <Label htmlFor="role">Role</Label>
+              <Select onValueChange={(value) => handleRoleChange(value as UserRole)} defaultValue={selectedRole}>
+                  <SelectTrigger id="role">
+                      <SelectValue placeholder="Select a role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                      <SelectItem value="admin">Admin</SelectItem>
+                      <SelectItem value="teacher">Teacher</SelectItem>
+                      <SelectItem value="student">Student</SelectItem>
+                      <SelectItem value="finance">Finance</SelectItem>
+                  </SelectContent>
+              </Select>
+          </div>
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input 
