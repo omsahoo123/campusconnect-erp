@@ -4,12 +4,10 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { format } from "date-fns"
-import { CalendarIcon, User, GraduationCap, Phone, Mail, MapPin, Heart } from "lucide-react"
+import { User, GraduationCap, Phone, Mail, MapPin, Heart, CalendarIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
 import {
   Form,
   FormControl,
@@ -20,11 +18,6 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
 import {
   Select,
   SelectContent,
@@ -41,7 +34,7 @@ import { collection } from "firebase/firestore"
 const formSchema = z.object({
   firstName: z.string().min(2, { message: "First name must be at least 2 characters." }),
   lastName: z.string().min(2, { message: "Last name must be at least 2 characters." }),
-  dob: z.date({ required_error: "A date of birth is required." }),
+  dob: z.string().refine((dob) => new Date(dob).toString() !== 'Invalid Date', { message: 'Invalid date format. Use YYYY-MM-DD' }),
   gender: z.enum(["male", "female", "other"]),
   email: z.string().email({ message: "Invalid email address." }),
   phone: z.string().min(10, { message: "Phone number must be at least 10 digits." }),
@@ -77,13 +70,14 @@ export function AdmissionsForm() {
       address: "",
       emergencyContactName: "",
       emergencyContactPhone: "",
+      dob: "",
     },
   })
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     const studentApplication = {
         ...values,
-        dateOfBirth: values.dob.toISOString(),
+        dateOfBirth: new Date(values.dob).toISOString(),
         applicationDate: new Date().toISOString(),
         status: 'Pending',
     };
@@ -141,40 +135,9 @@ export function AdmissionsForm() {
                         render={({ field }) => (
                             <FormItem className="flex flex-col">
                             <FormLabel>Date of birth</FormLabel>
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                <FormControl>
-                                    <Button
-                                    variant={"outline"}
-                                    className={cn(
-                                        "w-full pl-3 text-left font-normal",
-                                        !field.value && "text-muted-foreground"
-                                    )}
-                                    >
-                                    {field.value ? (
-                                        format(field.value, "PPP")
-                                    ) : (
-                                        <span>Pick a date</span>
-                                    )}
-                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                    </Button>
-                                </FormControl>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar
-                                    captionLayout="dropdown-buttons"
-                                    fromYear={1950}
-                                    toYear={new Date().getFullYear() - 15}
-                                    mode="single"
-                                    selected={field.value}
-                                    onSelect={field.onChange}
-                                    disabled={(date) =>
-                                        date > new Date() || date < new Date("1900-01-01")
-                                    }
-                                    initialFocus
-                                />
-                                </PopoverContent>
-                            </Popover>
+                             <FormControl>
+                                <Input placeholder="YYYY-MM-DD" {...field} />
+                            </FormControl>
                             <FormMessage />
                             </FormItem>
                         )}
@@ -327,5 +290,3 @@ export function AdmissionsForm() {
     </Form>
   )
 }
-
-    
