@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { format } from "date-fns"
-import { CalendarIcon, User, Briefcase } from "lucide-react"
+import { CalendarIcon, User, Briefcase, Mail, Phone } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -179,6 +179,14 @@ export function JobApplicationForm() {
                             </FormItem>
                         )}
                     />
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-xl"><Phone /> Contact Information</CardTitle>
+                </CardHeader>
+                 <CardContent className="space-y-4">
                     <FormField
                         control={form.control}
                         name="email"
@@ -205,10 +213,10 @@ export function JobApplicationForm() {
                             </FormItem>
                         )}
                     />
-                </CardContent>
+                 </CardContent>
             </Card>
 
-            <Card>
+            <Card className="md:col-span-2">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-xl"><Briefcase /> Professional Details</CardTitle>
                 </CardHeader>

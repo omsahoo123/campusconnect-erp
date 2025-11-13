@@ -251,70 +251,74 @@ export function AdmissionsForm() {
                 </CardContent>
             </Card>
             
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-xl"><GraduationCap /> Academic Information</CardTitle>
-                </CardHeader>
-                <CardContent>
-                     <FormField
-                        control={form.control}
-                        name="program"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Course</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select a course to enroll in" />
-                                </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                    <SelectItem value="B.Sc. Computer Science">B.Sc. Computer Science</SelectItem>
-                                    <SelectItem value="B.Sc. Mathematics">B.Sc. Mathematics</SelectItem>
-                                    <SelectItem value="B.Sc. Physics">B.Sc. Physics</SelectItem>
-                                    <SelectItem value="B.A. History">B.A. History</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                        />
-                </CardContent>
+            <Card className="md:col-span-2">
+                <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2 text-xl"><GraduationCap /> Academic Information</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <FormField
+                                control={form.control}
+                                name="program"
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel>Course</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select a course to enroll in" />
+                                        </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            <SelectItem value="B.Sc. Computer Science">B.Sc. Computer Science</SelectItem>
+                                            <SelectItem value="B.Sc. Mathematics">B.Sc. Mathematics</SelectItem>
+                                            <SelectItem value="B.Sc. Physics">B.Sc. Physics</SelectItem>
+                                            <SelectItem value="B.A. History">B.A. History</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                                />
+                        </CardContent>
+                    </div>
+                    <div>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2 text-xl"><Heart /> Emergency Contact</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <FormField
+                                control={form.control}
+                                name="emergencyContactName"
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel>Contact Name</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="Jane Doe" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="emergencyContactPhone"
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel>Contact Phone</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="+1 098 765 432" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </CardContent>
+                    </div>
+                </div>
             </Card>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-xl"><Heart /> Emergency Contact</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                     <FormField
-                        control={form.control}
-                        name="emergencyContactName"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Contact Name</FormLabel>
-                            <FormControl>
-                                <Input placeholder="Jane Doe" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                     <FormField
-                        control={form.control}
-                        name="emergencyContactPhone"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Contact Phone</FormLabel>
-                            <FormControl>
-                                <Input placeholder="+1 098 765 432" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                </CardContent>
-            </Card>
         </div>
         <div className="flex justify-end">
             <Button type="submit" className="bg-primary hover:bg-primary/90">Submit Application</Button>
