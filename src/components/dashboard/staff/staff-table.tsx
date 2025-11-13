@@ -265,7 +265,7 @@ export function StaffTable({ data: initialData }: { data: Staff[] }) {
                       column.toggleVisibility(!!value)
                     }
                   >
-                    {column.id === 'name' || column.id === 'email' ? 'Name' : column.id}
+                    {column.id}
                   </DropdownMenuCheckboxItem>
                 )
               })}
