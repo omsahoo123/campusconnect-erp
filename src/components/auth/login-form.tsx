@@ -15,7 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { UserRole } from "@/hooks/use-current-user";
-import { Icons } from "@/components/ui/icons";
+import { Icons } from "@/components/icons";
 import { Separator } from "../ui/separator";
 import Link from "next/link";
 import { userProfiles } from "@/lib/data";
@@ -81,17 +81,6 @@ export function LoginForm() {
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
-           <div className="pt-2">
-            <p className="text-xs text-center text-muted-foreground">
-              Use one of the following emails for demo:
-            </p>
-            <ul className="text-xs text-center text-muted-foreground">
-                <li><span className="font-semibold">admin:</span> admin@campus.edu</li>
-                <li><span className="font-semibold">teacher:</span> e.vance@campus.edu</li>
-                <li><span className="font-semibold">student:</span> student@campus.edu</li>
-                <li><span className="font-semibold">finance:</span> finance@campus.edu</li>
-            </ul>
-           </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
           <Button type="submit" className="w-full bg-primary hover:bg-primary/90">Sign In</Button>
