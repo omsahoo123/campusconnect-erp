@@ -4,15 +4,14 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { User, GraduationCap, Phone, Mail, MapPin, Heart, CalendarIcon } from "lucide-react"
+import { User, GraduationCap, Phone, Mail, Heart } from "lucide-react"
 import { useEffect } from "react"
+import { useRouter } from "next/navigation"
 
-import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -59,6 +58,7 @@ const formSchema = z.object({
 
 export function AdmissionsForm() {
   const { toast } = useToast()
+  const router = useRouter();
   const firestore = useFirestore();
   const auth = useAuth();
   const { user, isUserLoading } = useUser();
@@ -96,9 +96,10 @@ export function AdmissionsForm() {
 
     toast({
       title: "Admission Submitted!",
-      description: `Application for ${values.firstName} ${values.lastName} has been received.`,
+      description: `Application for ${values.firstName} ${values.lastName} has been received. Redirecting to login...`,
     })
     form.reset()
+    setTimeout(() => router.push('/login'), 2000);
   }
 
   return (
@@ -299,3 +300,5 @@ export function AdmissionsForm() {
     </Form>
   )
 }
+
+    
