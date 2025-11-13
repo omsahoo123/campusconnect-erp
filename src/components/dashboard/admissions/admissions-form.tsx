@@ -135,7 +135,7 @@ export function AdmissionsForm() {
                             )}
                         />
                     </div>
-                    <FormField
+                     <FormField
                         control={form.control}
                         name="dob"
                         render={({ field }) => (
@@ -327,3 +327,5 @@ export function AdmissionsForm() {
     </Form>
   )
 }
+
+    
