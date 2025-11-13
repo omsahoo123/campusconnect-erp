@@ -1,3 +1,5 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -15,8 +17,11 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs"
+import { useTheme } from "next-themes"
 
 export default function SettingsPage() {
+  const { setTheme } = useTheme()
+
   return (
     <div className="space-y-6">
       <div>
@@ -65,10 +70,9 @@ export default function SettingsPage() {
                 <div className="space-y-2">
                     <Label>Theme</Label>
                     <p className="text-sm text-muted-foreground">Select the theme for the dashboard.</p>
-                     {/* Theme switching functionality would be implemented here */}
                     <div className="flex gap-4 pt-2">
-                        <Button variant="outline">Light</Button>
-                        <Button>Dark</Button>
+                        <Button variant="outline" onClick={() => setTheme("light")}>Light</Button>
+                        <Button onClick={() => setTheme("dark")}>Dark</Button>
                     </div>
                 </div>
             </CardContent>
