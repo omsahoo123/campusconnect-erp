@@ -48,22 +48,6 @@ export function LoginForm() {
     e.preventDefault();
     setIsLoading(true);
 
-    // This is a mock check for the selected role based on email.
-    // In a real app, you'd likely get the role from your backend after successful Firebase login.
-    const expectedRoleForEmail = (Object.keys(userProfiles) as UserRole[]).find(
-      (role) => userProfiles[role].email === email
-    );
-
-    if (expectedRoleForEmail !== selectedRole) {
-      toast({
-        variant: "destructive",
-        title: "Login Failed",
-        description: "Invalid credentials for the selected role.",
-      });
-      setIsLoading(false);
-      return;
-    }
-
     try {
       await signInWithEmailAndPassword(auth, email, password);
       // Let the onAuthStateChanged listener and useCurrentUser hook handle the redirect
@@ -159,4 +143,3 @@ export function LoginForm() {
     </Card>
   );
 }
-
