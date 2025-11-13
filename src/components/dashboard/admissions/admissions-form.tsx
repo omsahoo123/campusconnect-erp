@@ -33,6 +33,9 @@ import {
 } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
+import { useFirestore } from "@/firebase"
+import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates"
+import { collection } from "firebase/firestore"
 
 const formSchema = z.object({
   firstName: z.string().min(2, { message: "First name must be at least 2 characters." }),
@@ -42,7 +45,7 @@ const formSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
   phone: z.string().min(10, { message: "Phone number must be at least 10 digits." }),
   address: z.string().min(5, { message: "Address is too short." }),
-  course: z.string({ required_error: "Please select a course." }),
+  program: z.string({ required_error: "Please select a course." }),
   emergencyContactName: z.string().min(2, "Name is required."),
   emergencyContactPhone: z.string().min(10, "Phone number is required."),
 }).refine(data => {
@@ -61,6 +64,8 @@ const formSchema = z.object({
 
 export function AdmissionsForm() {
   const { toast } = useToast()
+  const firestore = useFirestore();
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -75,7 +80,16 @@ export function AdmissionsForm() {
   })
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values)
+    const studentApplication = {
+        ...values,
+        dateOfBirth: values.dob.toISOString(),
+        applicationDate: new Date().toISOString(),
+        status: 'Pending',
+    };
+    
+    const studentApplicationsRef = collection(firestore, 'student_applications');
+    addDocumentNonBlocking(studentApplicationsRef, studentApplication);
+
     toast({
       title: "Admission Submitted!",
       description: `Application for ${values.firstName} ${values.lastName} has been received.`,
@@ -240,7 +254,7 @@ export function AdmissionsForm() {
                 <CardContent>
                      <FormField
                         control={form.control}
-                        name="course"
+                        name="program"
                         render={({ field }) => (
                             <FormItem>
                             <FormLabel>Course</FormLabel>
@@ -251,10 +265,10 @@ export function AdmissionsForm() {
                                 </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                    <SelectItem value="cs">B.Sc. Computer Science</SelectItem>
-                                    <SelectItem value="math">B.Sc. Mathematics</SelectItem>
-                                    <SelectItem value="phy">B.Sc. Physics</SelectItem>
-                                    <SelectItem value="hist">B.A. History</SelectItem>
+                                    <SelectItem value="B.Sc. Computer Science">B.Sc. Computer Science</SelectItem>
+                                    <SelectItem value="B.Sc. Mathematics">B.Sc. Mathematics</SelectItem>
+                                    <SelectItem value="B.Sc. Physics">B.Sc. Physics</SelectItem>
+                                    <SelectItem value="B.A. History">B.A. History</SelectItem>
                                 </SelectContent>
                             </Select>
                             <FormMessage />

@@ -9,12 +9,13 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, Users, GraduationCap, Briefcase, Banknote, BookOpen, Settings } from "lucide-react";
+import { LayoutDashboard, Users, GraduationCap, Briefcase, Banknote, BookOpen, Settings, FileText } from "lucide-react";
 import React from "react";
 
 const navItems = {
   admin: [
     { href: "/dashboard", icon: <LayoutDashboard />, label: "Dashboard", tooltip: "Dashboard" },
+    { href: "/dashboard/applications", icon: <FileText />, label: "Applications", tooltip: "Applications" },
     { href: "/dashboard/students", icon: <Users />, label: "Students", tooltip: "Students" },
     { href: "/dashboard/staff", icon: <Briefcase />, label: "Staff", tooltip: "Staff" },
     { href: "/dashboard/admissions", icon: <GraduationCap />, label: "Admissions", tooltip: "Admissions" },
@@ -59,7 +60,7 @@ export function SidebarNav({ role }: SidebarNavProps) {
           <SidebarMenuItem key={item.href}>
             <Link href={item.href}>
               <SidebarMenuButton
-                isActive={pathname === item.href}
+                isActive={pathname.startsWith(item.href) && (item.href !== '/dashboard' || pathname === '/dashboard')}
                 tooltip={item.tooltip}
               >
                 {item.icon}

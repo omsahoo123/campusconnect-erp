@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { format } from "date-fns"
-import { CalendarIcon, User, GraduationCap, Phone, Mail, Book, Briefcase } from "lucide-react"
+import { CalendarIcon, User, Briefcase } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -33,6 +33,10 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
 import { Textarea } from "../ui/textarea"
+import { useFirestore } from "@/firebase"
+import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates"
+import { collection } from "firebase/firestore"
+
 
 const formSchema = z.object({
   firstName: z.string().min(2, { message: "First name must be at least 2 characters." }),
@@ -40,7 +44,7 @@ const formSchema = z.object({
   dob: z.date({ required_error: "A date of birth is required." }),
   email: z.string().email({ message: "Invalid email address." }),
   phone: z.string().min(10, { message: "Phone number must be at least 10 digits." }),
-  department: z.string({ required_error: "Please select a department." }),
+  subject: z.string({ required_error: "Please select a department." }),
   qualification: z.string().min(2, { message: "Qualification is required." }),
   experience: z.string().min(1, { message: "Years of experience is required." }),
   coverLetter: z.string().min(20, { message: "Cover letter must be at least 20 characters." }),
@@ -60,6 +64,8 @@ const formSchema = z.object({
 
 export function JobApplicationForm() {
   const { toast } = useToast()
+  const firestore = useFirestore();
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -74,7 +80,16 @@ export function JobApplicationForm() {
   })
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values)
+    const teacherApplication = {
+        ...values,
+        dateOfBirth: values.dob.toISOString(),
+        applicationDate: new Date().toISOString(),
+        status: 'Pending',
+    };
+    
+    const teacherApplicationsRef = collection(firestore, 'teacher_applications');
+    addDocumentNonBlocking(teacherApplicationsRef, teacherApplication);
+
     toast({
       title: "Application Submitted!",
       description: `Thank you, ${values.firstName}. Your application has been received.`,
@@ -196,7 +211,7 @@ export function JobApplicationForm() {
                 <CardContent className="space-y-4">
                      <FormField
                         control={form.control}
-                        name="department"
+                        name="subject"
                         render={({ field }) => (
                             <FormItem>
                             <FormLabel>Department</FormLabel>
@@ -207,10 +222,10 @@ export function JobApplicationForm() {
                                 </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                    <SelectItem value="cs">Computer Science</SelectItem>
-                                    <SelectItem value="math">Mathematics</SelectItem>
-                                    <SelectItem value="phy">Physics</SelectItem>
-                                    <SelectItem value="hist">History</SelectItem>
+                                    <SelectItem value="Computer Science">Computer Science</SelectItem>
+                                    <SelectItem value="Mathematics">Mathematics</SelectItem>
+                                    <SelectItem value="Physics">Physics</SelectItem>
+                                    <SelectItem value="History">History</SelectItem>
                                 </SelectContent>
                             </Select>
                             <FormMessage />
