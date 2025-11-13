@@ -1,3 +1,5 @@
+"use client";
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, TrendingDown, CircleDollarSign, Wallet } from "lucide-react";
 import { Area, AreaChart, CartesianGrid, XAxis, ResponsiveContainer } from "recharts";
