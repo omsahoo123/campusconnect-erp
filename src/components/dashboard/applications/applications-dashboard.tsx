@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -13,34 +13,47 @@ export function ApplicationsDashboard() {
   const { toast } = useToast();
   const [studentApps, setStudentApps] = useState<any[]>([]);
   const [teacherApps, setTeacherApps] = useState<any[]>([]);
-  const [studentLoading, setStudentLoading] = useState(true);
-  const [teacherLoading, setTeacherLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
+
+  const loadApplications = useCallback(() => {
+    if (typeof window !== 'undefined') {
+      const storedStudentApps = localStorage.getItem('studentApplications');
+      if (storedStudentApps) {
+        setStudentApps(JSON.parse(storedStudentApps));
+      }
+      const storedTeacherApps = localStorage.getItem('teacherApplications');
+      if (storedTeacherApps) {
+        setTeacherApps(JSON.parse(storedTeacherApps));
+      }
+    }
+    setLoading(false);
+  }, []);
 
   useEffect(() => {
-    // We need to check if window is defined to avoid SSR errors
-    if (typeof window !== 'undefined') {
-        const storedStudentApps = localStorage.getItem('studentApplications');
-        if (storedStudentApps) {
-          setStudentApps(JSON.parse(storedStudentApps));
-        }
-        setStudentLoading(false);
+    loadApplications();
 
-        const storedTeacherApps = localStorage.getItem('teacherApplications');
-        if (storedTeacherApps) {
-          setTeacherApps(JSON.parse(storedTeacherApps));
-        }
-        setTeacherLoading(false);
-    }
-  }, []);
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === 'studentApplications' || event.key === 'teacherApplications') {
+        loadApplications();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [loadApplications]);
 
 
   const handleApprove = (type: 'student' | 'teacher', id: string, name: string) => {
+    let updatedApps;
     if (type === 'student') {
-        const updatedApps = studentApps.filter(app => app.id !== id);
+        updatedApps = studentApps.filter(app => app.id !== id);
         setStudentApps(updatedApps);
         localStorage.setItem('studentApplications', JSON.stringify(updatedApps));
     } else {
-        const updatedApps = teacherApps.filter(app => app.id !== id);
+        updatedApps = teacherApps.filter(app => app.id !== id);
         setTeacherApps(updatedApps);
         localStorage.setItem('teacherApplications', JSON.stringify(updatedApps));
     }
@@ -51,12 +64,13 @@ export function ApplicationsDashboard() {
   };
 
   const handleReject = (type: 'student' | 'teacher', id: string, name: string) => {
+    let updatedApps;
     if (type === 'student') {
-        const updatedApps = studentApps.filter(app => app.id !== id);
+        updatedApps = studentApps.filter(app => app.id !== id);
         setStudentApps(updatedApps);
         localStorage.setItem('studentApplications', JSON.stringify(updatedApps));
     } else {
-        const updatedApps = teacherApps.filter(app => app.id !== id);
+        updatedApps = teacherApps.filter(app => app.id !== id);
         setTeacherApps(updatedApps);
         localStorage.setItem('teacherApplications', JSON.stringify(updatedApps));
     }
@@ -106,7 +120,7 @@ export function ApplicationsDashboard() {
           <CardDescription>Review and process new student applications.</CardDescription>
         </CardHeader>
         <CardContent>
-          {studentLoading ? renderSkeleton() : (
+          {loading ? renderSkeleton() : (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -148,7 +162,7 @@ export function ApplicationsDashboard() {
           <CardDescription>Review and process new teacher applications.</CardDescription>
         </CardHeader>
         <CardContent>
-          {teacherLoading ? renderSkeleton(true) : (
+          {loading ? renderSkeleton(true) : (
             <Table>
               <TableHeader>
                 <TableRow>
