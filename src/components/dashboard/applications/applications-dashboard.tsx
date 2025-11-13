@@ -17,17 +17,20 @@ export function ApplicationsDashboard() {
   const [teacherLoading, setTeacherLoading] = useState(true);
 
   useEffect(() => {
-    const storedStudentApps = localStorage.getItem('studentApplications');
-    if (storedStudentApps) {
-      setStudentApps(JSON.parse(storedStudentApps));
-    }
-    setStudentLoading(false);
+    // We need to check if window is defined to avoid SSR errors
+    if (typeof window !== 'undefined') {
+        const storedStudentApps = localStorage.getItem('studentApplications');
+        if (storedStudentApps) {
+          setStudentApps(JSON.parse(storedStudentApps));
+        }
+        setStudentLoading(false);
 
-    const storedTeacherApps = localStorage.getItem('teacherApplications');
-    if (storedTeacherApps) {
-      setTeacherApps(JSON.parse(storedTeacherApps));
+        const storedTeacherApps = localStorage.getItem('teacherApplications');
+        if (storedTeacherApps) {
+          setTeacherApps(JSON.parse(storedTeacherApps));
+        }
+        setTeacherLoading(false);
     }
-    setTeacherLoading(false);
   }, []);
 
 
