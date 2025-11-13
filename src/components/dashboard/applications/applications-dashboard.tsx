@@ -16,15 +16,13 @@ export function ApplicationsDashboard() {
   const [loading, setLoading] = useState(true);
 
   const loadApplications = useCallback(() => {
+    setLoading(true);
     if (typeof window !== 'undefined') {
       const storedStudentApps = localStorage.getItem('studentApplications');
-      if (storedStudentApps) {
-        setStudentApps(JSON.parse(storedStudentApps));
-      }
+      setStudentApps(storedStudentApps ? JSON.parse(storedStudentApps) : []);
+      
       const storedTeacherApps = localStorage.getItem('teacherApplications');
-      if (storedTeacherApps) {
-        setTeacherApps(JSON.parse(storedTeacherApps));
-      }
+      setTeacherApps(storedTeacherApps ? JSON.parse(storedTeacherApps) : []);
     }
     setLoading(false);
   }, []);
@@ -32,10 +30,8 @@ export function ApplicationsDashboard() {
   useEffect(() => {
     loadApplications();
 
-    const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === 'studentApplications' || event.key === 'teacherApplications') {
+    const handleStorageChange = () => {
         loadApplications();
-      }
     };
 
     window.addEventListener('storage', handleStorageChange);
