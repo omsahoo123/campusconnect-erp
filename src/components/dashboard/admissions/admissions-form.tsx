@@ -1,12 +1,9 @@
-
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { User, GraduationCap, Phone, Mail, Heart } from "lucide-react"
-import { useEffect } from "react"
-import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -27,9 +24,7 @@ import {
 } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
-import { useAuth, useFirestore, useUser } from "@/firebase"
-import { addDocumentNonBlocking, initiateAnonymousSignIn } from "@/firebase"
-import { collection } from "firebase/firestore"
+import { useRouter } from "next/navigation"
 
 const formSchema = z.object({
   firstName: z.string().min(2, { message: "First name must be at least 2 characters." }),
@@ -59,15 +54,6 @@ const formSchema = z.object({
 export function AdmissionsForm() {
   const { toast } = useToast()
   const router = useRouter();
-  const firestore = useFirestore();
-  const auth = useAuth();
-  const { user, isUserLoading } = useUser();
-
-  useEffect(() => {
-    if (!isUserLoading && !user) {
-      initiateAnonymousSignIn(auth);
-    }
-  }, [user, isUserLoading, auth]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -84,16 +70,6 @@ export function AdmissionsForm() {
   })
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    const studentApplication = {
-        ...values,
-        dateOfBirth: new Date(values.dob).toISOString(),
-        applicationDate: new Date().toISOString(),
-        status: 'Pending',
-    };
-    
-    const studentApplicationsRef = collection(firestore, 'student_applications');
-    addDocumentNonBlocking(studentApplicationsRef, studentApplication);
-
     toast({
       title: "Admission Submitted!",
       description: `Application for ${values.firstName} ${values.lastName} has been received. Redirecting to login...`,
@@ -146,7 +122,7 @@ export function AdmissionsForm() {
                             <FormItem className="flex flex-col">
                             <FormLabel>Date of birth</FormLabel>
                              <FormControl>
-                                <Input placeholder="YYYY-MM-DD" {...field} />
+                                <Input type="text" placeholder="YYYY-MM-DD" {...field} />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
@@ -300,5 +276,3 @@ export function AdmissionsForm() {
     </Form>
   )
 }
-
-    

@@ -1,46 +1,48 @@
 "use client";
 
-import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import { collection, query, where, doc, updateDoc } from "firebase/firestore";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
-import { updateDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+
+const mockStudentApps = [
+    { id: '1', firstName: 'John', lastName: 'Doe', email: 'john.d@example.com', program: 'B.Sc. Computer Science', applicationDate: '2024-07-20', status: 'Pending' },
+    { id: '2', firstName: 'Jane', lastName: 'Smith', email: 'jane.s@example.com', program: 'B.A. History', applicationDate: '2024-07-19', status: 'Pending' },
+];
+
+const mockTeacherApps = [
+    { id: '3', firstName: 'Peter', lastName: 'Jones', email: 'peter.j@example.com', subject: 'Mathematics', applicationDate: '2024-07-18', status: 'Pending' },
+];
+
 
 export function ApplicationsDashboard() {
-  const firestore = useFirestore();
   const { toast } = useToast();
+  const [studentApps, setStudentApps] = useState(mockStudentApps);
+  const [teacherApps, setTeacherApps] = useState(mockTeacherApps);
+  const [studentLoading, setStudentLoading] = useState(false);
+  const [teacherLoading, setTeacherLoading] = useState(false);
 
-  const studentApplicationsQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'student_applications'), where('status', '==', 'Pending'));
-  }, [firestore]);
-  
-  const teacherApplicationsQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'teacher_applications'), where('status', '==', 'Pending'));
-  }, [firestore]);
-
-  const { data: studentApps, isLoading: studentLoading } = useCollection(studentApplicationsQuery);
-  const { data: teacherApps, isLoading: teacherLoading } = useCollection(teacherApplicationsQuery);
-  
-  const handleApprove = (collectionName: string, id: string, name: string) => {
-    if (!firestore) return;
-    const docRef = doc(firestore, collectionName, id);
-    updateDocumentNonBlocking(docRef, { status: "Approved" });
+  const handleApprove = (type: 'student' | 'teacher', id: string, name: string) => {
+    if (type === 'student') {
+        setStudentApps(prev => prev.filter(app => app.id !== id));
+    } else {
+        setTeacherApps(prev => prev.filter(app => app.id !== id));
+    }
     toast({
       title: "Application Approved",
       description: `${name}'s application has been approved.`,
     });
   };
 
-  const handleReject = (collectionName: string, id: string, name: string) => {
-    if (!firestore) return;
-    const docRef = doc(firestore, collectionName, id);
-    updateDocumentNonBlocking(docRef, { status: "Rejected" });
+  const handleReject = (type: 'student' | 'teacher', id: string, name: string) => {
+    if (type === 'student') {
+        setStudentApps(prev => prev.filter(app => app.id !== id));
+    } else {
+        setTeacherApps(prev => prev.filter(app => app.id !== id));
+    }
     toast({
       variant: "destructive",
       title: "Application Rejected",
@@ -105,8 +107,8 @@ export function ApplicationsDashboard() {
                       <TableCell>{app.program}</TableCell>
                       <TableCell>{new Date(app.applicationDate).toLocaleDateString()}</TableCell>
                       <TableCell className="space-x-2">
-                        <Button size="sm" onClick={() => handleApprove('student_applications', app.id, `${app.firstName} ${app.lastName}`)}>Approve</Button>
-                        <Button size="sm" variant="destructive" onClick={() => handleReject('student_applications', app.id, `${app.firstName} ${app.lastName}`)}>Reject</Button>
+                        <Button size="sm" onClick={() => handleApprove('student', app.id, `${app.firstName} ${app.lastName}`)}>Approve</Button>
+                        <Button size="sm" variant="destructive" onClick={() => handleReject('student', app.id, `${app.firstName} ${app.lastName}`)}>Reject</Button>
                       </TableCell>
                     </TableRow>
                   ))
@@ -146,8 +148,8 @@ export function ApplicationsDashboard() {
                       <TableCell>{app.subject}</TableCell>
                       <TableCell>{new Date(app.applicationDate).toLocaleDateString()}</TableCell>
                       <TableCell className="space-x-2">
-                        <Button size="sm" onClick={() => handleApprove('teacher_applications', app.id, `${app.firstName} ${app.lastName}`)}>Approve</Button>
-                        <Button size="sm" variant="destructive" onClick={() => handleReject('teacher_applications', app.id, `${app.firstName} ${app.lastName}`)}>Reject</Button>
+                        <Button size="sm" onClick={() => handleApprove('teacher', app.id, `${app.firstName} ${app.lastName}`)}>Approve</Button>
+                        <Button size="sm" variant="destructive" onClick={() => handleReject('teacher', app.id, `${app.firstName} ${app.lastName}`)}>Reject</Button>
                       </TableCell>
                     </TableRow>
                   ))

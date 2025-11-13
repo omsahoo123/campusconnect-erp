@@ -6,15 +6,13 @@ This is a NextJS starter in Firebase Studio.
 
 To get started, take a look at `src/app/page.tsx`.
 
-## Creating Test Users
+## Simulating Different User Roles
 
-To test the application, you need to create user accounts in Firebase Authentication. You can log in with different roles to see different dashboards.
+This application uses a mock authentication system to simulate different user roles. You can log in as different users to see their respective dashboards.
 
-### Step 1: Create the Users in Firebase
+The login form is pre-populated with test credentials. To switch roles, simply select a different role from the dropdown on the login page. The email and password fields will update automatically.
 
-1.  Go to the [Firebase Console](https://console.firebase.google.com/).
-2.  Navigate to your project, then go to **Authentication** -> **Users** tab.
-3.  Click **Add user** and create the following four users. Use `password` as the password for all of them.
+Here are the available test roles and their credentials:
 
 | Role      | Email                  | Password   |
 | :-------- | :--------------------- | :--------- |
@@ -23,13 +21,4 @@ To test the application, you need to create user accounts in Firebase Authentica
 | Student   | `student@campus.edu`   | `password` |
 | Finance   | `finance@campus.edu`   | `password` |
 
-### Step 2: Provision the Admin Role
-
-The admin user requires special privileges that must be granted after the account is created.
-
-1.  Run the application.
-2.  Log in using the `admin@campus.edu` email and `password` password.
-3.  After logging in, navigate to the `/dashboard/provision-admin` URL in your browser.
-4.  Click the "Grant Admin Role" button.
-
-Once completed, the user `admin@campus.edu` will have full administrative privileges across the application. The other users will automatically have their correct roles based on their email address.
+Since this is a mock system, the user's session is not persisted across page reloads.

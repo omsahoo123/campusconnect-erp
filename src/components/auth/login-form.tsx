@@ -27,13 +27,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useAuth } from "@/firebase";
-import { signInWithEmailAndPassword } from "firebase/auth";
 
 export function LoginForm() {
   const router = useRouter();
   const { toast } = useToast();
-  const auth = useAuth();
   const [selectedRole, setSelectedRole] = useState<UserRole>("admin");
   const [email, setEmail] = useState(userProfiles.admin.email);
   const [password, setPassword] = useState("password");
@@ -48,30 +45,20 @@ export function LoginForm() {
     e.preventDefault();
     setIsLoading(true);
 
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      // Let the onAuthStateChanged listener and useCurrentUser hook handle the redirect
-      router.push("/dashboard");
-    } catch (error) {
-      console.error("Login failed:", error);
-      let description = "An unexpected error occurred.";
-      if (error instanceof Error && 'code' in error) {
-        switch ((error as {code: string}).code) {
-          case 'auth/user-not-found':
-          case 'auth/wrong-password':
-          case 'auth/invalid-credential':
-            description = "Invalid email or password. Please ensure the test user has been created in the Firebase Authentication console. See README.md for details.";
-            break;
-        }
-      }
-      toast({
-        variant: "destructive",
-        title: "Login Failed",
-        description,
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    // Simulate network delay
+    setTimeout(() => {
+        // Store the selected role in localStorage
+        localStorage.setItem("userRole", selectedRole);
+        localStorage.setItem("isLoggedIn", "true");
+
+        toast({
+            title: "Login Successful",
+            description: `Welcome, ${userProfiles[selectedRole].name}!`,
+        });
+
+        router.push("/dashboard");
+        setIsLoading(false);
+    }, 1000);
   };
 
 

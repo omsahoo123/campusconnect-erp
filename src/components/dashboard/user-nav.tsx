@@ -16,22 +16,16 @@ import { useCurrentUser, type UserRole } from "@/hooks/use-current-user";
 import { userProfiles } from "@/lib/data";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/firebase";
-import { signOut } from "firebase/auth";
 
 export function UserNav() {
   const router = useRouter();
   const { role } = useCurrentUser();
-  const auth = useAuth();
 
 
   const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      router.push("/login");
-    } catch (error) {
-      console.error("Logout failed:", error);
-    }
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("isLoggedIn");
+    router.push("/login");
   };
 
   const profile = role ? userProfiles[role] : null;

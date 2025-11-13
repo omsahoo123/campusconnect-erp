@@ -1,12 +1,9 @@
-
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { User, Briefcase, Mail, Phone } from "lucide-react"
-import { useEffect } from "react"
-import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -28,9 +25,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
 import { Textarea } from "../ui/textarea"
-import { useAuth, useFirestore, useUser } from "@/firebase"
-import { addDocumentNonBlocking, initiateAnonymousSignIn } from "@/firebase"
-import { collection } from "firebase/firestore"
+import { useRouter } from "next/navigation"
 
 
 const formSchema = z.object({
@@ -60,15 +55,6 @@ const formSchema = z.object({
 export function JobApplicationForm() {
   const { toast } = useToast()
   const router = useRouter();
-  const firestore = useFirestore();
-  const auth = useAuth();
-  const { user, isUserLoading } = useUser();
-
-  useEffect(() => {
-    if (!isUserLoading && !user) {
-      initiateAnonymousSignIn(auth);
-    }
-  }, [user, isUserLoading, auth]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -85,16 +71,6 @@ export function JobApplicationForm() {
   })
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    const teacherApplication = {
-        ...values,
-        dateOfBirth: new Date(values.dob).toISOString(),
-        applicationDate: new Date().toISOString(),
-        status: 'Pending',
-    };
-    
-    const teacherApplicationsRef = collection(firestore, 'teacher_applications');
-    addDocumentNonBlocking(teacherApplicationsRef, teacherApplication);
-
     toast({
       title: "Application Submitted!",
       description: `Thank you, ${values.firstName}. Your application has been received. Redirecting to login...`,
@@ -147,7 +123,7 @@ export function JobApplicationForm() {
                             <FormItem className="flex flex-col">
                             <FormLabel>Date of birth</FormLabel>
                             <FormControl>
-                                <Input placeholder="YYYY-MM-DD" {...field} />
+                                <Input type="text" placeholder="YYYY-MM-DD" {...field} />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
@@ -267,5 +243,3 @@ export function JobApplicationForm() {
     </Form>
   )
 }
-
-    
