@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -9,27 +9,37 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const mockStudentApps: any[] = [
-    // { id: '1', name: 'John Doe', grade: 'A', gender: 'Male', date: '2024-07-20', status: 'Pending' },
-];
-
-const mockTeacherApps: any[] = [
-    // { id: '3', name: 'Peter Jones', subject: 'Mathematics', experience: '5 years', resume: 'View', status: 'Pending' },
-];
-
-
 export function ApplicationsDashboard() {
   const { toast } = useToast();
-  const [studentApps, setStudentApps] = useState(mockStudentApps);
-  const [teacherApps, setTeacherApps] = useState(mockTeacherApps);
-  const [studentLoading, setStudentLoading] = useState(false);
-  const [teacherLoading, setTeacherLoading] = useState(false);
+  const [studentApps, setStudentApps] = useState<any[]>([]);
+  const [teacherApps, setTeacherApps] = useState<any[]>([]);
+  const [studentLoading, setStudentLoading] = useState(true);
+  const [teacherLoading, setTeacherLoading] = useState(true);
+
+  useEffect(() => {
+    const storedStudentApps = localStorage.getItem('studentApplications');
+    if (storedStudentApps) {
+      setStudentApps(JSON.parse(storedStudentApps));
+    }
+    setStudentLoading(false);
+
+    const storedTeacherApps = localStorage.getItem('teacherApplications');
+    if (storedTeacherApps) {
+      setTeacherApps(JSON.parse(storedTeacherApps));
+    }
+    setTeacherLoading(false);
+  }, []);
+
 
   const handleApprove = (type: 'student' | 'teacher', id: string, name: string) => {
     if (type === 'student') {
-        setStudentApps(prev => prev.filter(app => app.id !== id));
+        const updatedApps = studentApps.filter(app => app.id !== id);
+        setStudentApps(updatedApps);
+        localStorage.setItem('studentApplications', JSON.stringify(updatedApps));
     } else {
-        setTeacherApps(prev => prev.filter(app => app.id !== id));
+        const updatedApps = teacherApps.filter(app => app.id !== id);
+        setTeacherApps(updatedApps);
+        localStorage.setItem('teacherApplications', JSON.stringify(updatedApps));
     }
     toast({
       title: "Application Approved",
@@ -39,9 +49,13 @@ export function ApplicationsDashboard() {
 
   const handleReject = (type: 'student' | 'teacher', id: string, name: string) => {
     if (type === 'student') {
-        setStudentApps(prev => prev.filter(app => app.id !== id));
+        const updatedApps = studentApps.filter(app => app.id !== id);
+        setStudentApps(updatedApps);
+        localStorage.setItem('studentApplications', JSON.stringify(updatedApps));
     } else {
-        setTeacherApps(prev => prev.filter(app => app.id !== id));
+        const updatedApps = teacherApps.filter(app => app.id !== id);
+        setTeacherApps(updatedApps);
+        localStorage.setItem('teacherApplications', JSON.stringify(updatedApps));
     }
     toast({
       variant: "destructive",

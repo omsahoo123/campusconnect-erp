@@ -70,6 +70,21 @@ export function AdmissionsForm() {
   })
 
   function onSubmit(values: z.infer<typeof formSchema>) {
+    const existingAppsString = localStorage.getItem('studentApplications');
+    const existingApps = existingAppsString ? JSON.parse(existingAppsString) : [];
+    
+    const newApp = {
+      id: `APP${Date.now()}`,
+      name: `${values.firstName} ${values.lastName}`,
+      grade: 'N/A', // Grade is not in the form, setting a default
+      gender: values.gender,
+      date: new Date().toISOString(),
+      status: 'Pending',
+    };
+
+    const updatedApps = [...existingApps, newApp];
+    localStorage.setItem('studentApplications', JSON.stringify(updatedApps));
+
     toast({
       title: "Admission Submitted!",
       description: `Application for ${values.firstName} ${values.lastName} has been received. Redirecting to login...`,

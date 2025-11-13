@@ -71,6 +71,21 @@ export function JobApplicationForm() {
   })
 
   function onSubmit(values: z.infer<typeof formSchema>) {
+    const existingAppsString = localStorage.getItem('teacherApplications');
+    const existingApps = existingAppsString ? JSON.parse(existingAppsString) : [];
+    
+    const newApp = {
+      id: `APP${Date.now()}`,
+      name: `${values.firstName} ${values.lastName}`,
+      subject: values.subject,
+      experience: `${values.experience} years`,
+      resume: 'View',
+      status: 'Pending',
+    };
+
+    const updatedApps = [...existingApps, newApp];
+    localStorage.setItem('teacherApplications', JSON.stringify(updatedApps));
+
     toast({
       title: "Application Submitted!",
       description: `Thank you, ${values.firstName}. Your application has been received. Redirecting to login...`,
