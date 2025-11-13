@@ -1,6 +1,12 @@
+
+"use client";
+
 import { AdmissionsForm } from "@/components/dashboard/admissions/admissions-form";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 export default function AdmissionsPage() {
+  const { role } = useCurrentUser();
+
   return (
     <div className="space-y-6">
       <div>
