@@ -188,7 +188,7 @@ export function StudentTable() {
       header: () => <div className="text-right">Join Date</div>,
       cell: ({ row }) => {
         const date = new Date(row.getValue("joinDate"))
-        const formatted = date.toLocaleDateString()
+        const formatted = date.toLocaleDateString('en-GB');
         return <div className="text-right font-medium">{formatted}</div>
       },
     },
