@@ -258,8 +258,9 @@ export function ApplicationsDashboard() {
                 )}
               </TableBody>
             </Table>
-             {selectedApp && (
-                <DialogContent className="sm:max-w-[600px]">
+            <DialogContent open={!!selectedApp} onOpenChange={(isOpen) => !isOpen && setSelectedApp(null)} className="sm:max-w-[600px]">
+              {selectedApp && (
+                <>
                     <DialogHeader>
                         <DialogTitle>Job Application: {selectedApp.name}</DialogTitle>
                         <DialogDescription>
@@ -286,8 +287,9 @@ export function ApplicationsDashboard() {
                             </ScrollArea>
                         </div>
                     </div>
-                </DialogContent>
-            )}
+                </>
+              )}
+            </DialogContent>
           </Dialog>
         </CardContent>
       </Card>
