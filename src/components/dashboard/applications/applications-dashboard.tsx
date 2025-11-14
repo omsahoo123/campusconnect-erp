@@ -17,6 +17,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
 
 
 interface StudentApplication {
@@ -62,10 +63,15 @@ export function ApplicationsDashboard() {
       console.error("Failed to parse applications from localStorage", error);
       setStudentApps([]);
       setTeacherApps([]);
+      toast({
+        variant: "destructive",
+        title: "Error loading data",
+        description: "Could not load applications from local storage.",
+      });
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [toast]);
 
   useEffect(() => {
     loadApplications();
@@ -140,10 +146,6 @@ export function ApplicationsDashboard() {
     });
   };
 
-  if (loading) {
-    return <div>Loading applications...</div>
-  }
-
   return (
     <div className="space-y-8">
       <Card>
@@ -162,7 +164,19 @@ export function ApplicationsDashboard() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {studentApps.length > 0 ? (
+              {loading ? (
+                Array.from({ length: 3 }).map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-16" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                    <TableCell className="text-right space-x-2">
+                      <Skeleton className="h-8 w-20 inline-block" />
+                      <Skeleton className="h-8 w-20 inline-block" />
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : studentApps.length > 0 ? (
                 studentApps.map((app) => (
                   <TableRow key={app.id}>
                     <TableCell className="font-medium">{app.name}</TableCell>
@@ -190,7 +204,7 @@ export function ApplicationsDashboard() {
           <CardDescription>Review and process new teacher applications.</CardDescription>
         </CardHeader>
         <CardContent>
-          <Dialog>
+          <Dialog onOpenChange={() => setSelectedApp(null)}>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -203,7 +217,21 @@ export function ApplicationsDashboard() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {teacherApps.length > 0 ? (
+                {loading ? (
+                   Array.from({ length: 3 }).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                      <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+                      <TableCell><Skeleton className="h-5 w-12" /></TableCell>
+                      <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
+                      <TableCell className="text-right space-x-2">
+                        <Skeleton className="h-8 w-20 inline-block" />
+                        <Skeleton className="h-8 w-20 inline-block" />
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : teacherApps.length > 0 ? (
                   teacherApps.map((app) => (
                     <TableRow key={app.id}>
                       <TableCell className="font-medium">{app.name}</TableCell>
