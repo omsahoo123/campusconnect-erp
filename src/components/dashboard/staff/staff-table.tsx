@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -6,6 +7,7 @@ import {
   ArrowUpDown,
   ChevronDown,
   MoreHorizontal,
+  Trash2,
 } from "lucide-react"
 import {
   ColumnDef,
@@ -234,6 +236,17 @@ export function StaffTable({ data: initialData }: { data: Staff[] }) {
     },
   })
 
+  const handleDeleteSelected = () => {
+    const selectedIds = table.getFilteredSelectedRowModel().rows.map(row => row.original.id);
+    const updatedStaff = data.filter(staff => !selectedIds.includes(staff.id));
+    setData(updatedStaff);
+    table.resetRowSelection();
+    toast({
+      title: "Staff Members Deleted",
+      description: `${selectedIds.length} staff member(s) have been removed.`,
+    });
+  };
+
   return (
     <div className="w-full">
       <div className="flex items-center py-4">
@@ -245,6 +258,34 @@ export function StaffTable({ data: initialData }: { data: Staff[] }) {
           }
           className="max-w-sm"
         />
+        {table.getFilteredSelectedRowModel().rows.length > 0 && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" className="ml-4">
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete ({table.getFilteredSelectedRowModel().rows.length})
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete the
+                  selected staff records.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-destructive hover:bg-destructive/90"
+                  onClick={handleDeleteSelected}
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">
