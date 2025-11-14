@@ -66,6 +66,7 @@ import {
 import { useToast } from "@/hooks/use-toast"
 import { staffData as defaultStaffData } from "@/lib/data"
 import { useCurrentUser } from "@/hooks/use-current-user"
+import { Label } from "@/components/ui/label"
 
 export type Staff = {
   id: string
