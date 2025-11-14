@@ -45,18 +45,49 @@ export function LoginForm() {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate network delay
     setTimeout(() => {
-        // Store the selected role in localStorage
-        localStorage.setItem("userRole", selectedRole);
-        localStorage.setItem("isLoggedIn", "true");
+        let isAuthenticated = false;
+        let loggedInRole: UserRole | null = null;
 
-        toast({
-            title: "Login Successful",
-            description: `Welcome, ${userProfiles[selectedRole].name}!`,
-        });
+        // Check hardcoded profiles first
+        for (const role in userProfiles) {
+            const user = userProfiles[role as UserRole];
+            if (user.email === email && password === "password") {
+                isAuthenticated = true;
+                loggedInRole = role as UserRole;
+                break;
+            }
+        }
+        
+        // If not found, check generated credentials in localStorage
+        if (!isAuthenticated) {
+            const storedCredentialsString = localStorage.getItem('userCredentials');
+            const storedCredentials = storedCredentialsString ? JSON.parse(storedCredentialsString) : [];
+            const foundUser = storedCredentials.find((cred: any) => cred.email === email && cred.password === password);
+            if (foundUser) {
+                 isAuthenticated = true;
+                 loggedInRole = foundUser.role;
+            }
+        }
 
-        router.push("/dashboard");
+        if (isAuthenticated && loggedInRole) {
+            localStorage.setItem("userRole", loggedInRole);
+            localStorage.setItem("isLoggedIn", "true");
+
+            toast({
+                title: "Login Successful",
+                description: `Welcome!`,
+            });
+
+            router.push("/dashboard");
+        } else {
+             toast({
+                variant: "destructive",
+                title: "Login Failed",
+                description: "Invalid email or password.",
+            });
+        }
+
         setIsLoading(false);
     }, 1000);
   };
@@ -74,7 +105,7 @@ export function LoginForm() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-              <Label htmlFor="role">Role</Label>
+              <Label htmlFor="role">Role (for pre-filled users)</Label>
               <Select onValueChange={(value) => handleRoleChange(value as UserRole)} defaultValue={selectedRole}>
                   <SelectTrigger id="role">
                       <SelectValue placeholder="Select a role" />

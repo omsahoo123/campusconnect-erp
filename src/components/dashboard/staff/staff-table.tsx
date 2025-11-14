@@ -8,6 +8,8 @@ import {
   ChevronDown,
   MoreHorizontal,
   Trash2,
+  KeyRound,
+  Copy
 } from "lucide-react"
 import {
   ColumnDef,
@@ -54,8 +56,16 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog"
 import { useToast } from "@/hooks/use-toast"
 import { staffData as defaultStaffData } from "@/lib/data"
+import { useCurrentUser } from "@/hooks/use-current-user"
 
 export type Staff = {
   id: string
@@ -63,6 +73,11 @@ export type Staff = {
   email: string
   department: string
   status: "Active" | "On Leave" | "Inactive"
+}
+
+type GeneratedCredential = {
+    email: string,
+    password?: string
 }
 
 const getStatusVariant = (status: Staff["status"]) => {
@@ -78,8 +93,14 @@ const getStatusVariant = (status: Staff["status"]) => {
 }
 
 const getColumns = (
-  { router, toast, handleDelete, handleStatusChange }:
-  { router: any, toast: any, handleDelete: (id: string) => void, handleStatusChange: (id: string, status: Staff["status"]) => void }
+  { router, toast, handleDelete, handleStatusChange, handleGenerateCredentials }:
+  { 
+    router: any, 
+    toast: any, 
+    handleDelete: (id: string) => void, 
+    handleStatusChange: (id: string, status: Staff["status"]) => void,
+    handleGenerateCredentials: (staff: Staff) => void
+  }
 ): ColumnDef<Staff>[] => [
   {
     id: "select",
@@ -169,6 +190,10 @@ const getColumns = (
               <DropdownMenuItem onClick={() => router.push(`/dashboard/staff/${staff.id}`)}>
                 View profile
               </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleGenerateCredentials(staff)}>
+                <KeyRound className="mr-2 h-4 w-4" />
+                Generate Credentials
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => handleStatusChange(staff.id, "Active")}
@@ -223,6 +248,7 @@ const getColumns = (
 export function StaffTable() {
   const router = useRouter();
   const { toast } = useToast();
+  const { role } = useCurrentUser();
   const [data, setData] = React.useState<Staff[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [sorting, setSorting] = React.useState<SortingState>([])
@@ -232,6 +258,7 @@ export function StaffTable() {
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = React.useState({})
+  const [generatedCredential, setGeneratedCredential] = React.useState<GeneratedCredential | null>(null);
 
   const loadStaff = React.useCallback(() => {
     setIsLoading(true);
@@ -289,7 +316,29 @@ export function StaffTable() {
     });
   };
 
-  const columns = getColumns({router, toast, handleDelete, handleStatusChange});
+  const handleGenerateCredentials = (staff: Staff) => {
+    if (role !== 'admin') {
+        toast({ variant: 'destructive', title: "Permission Denied", description: "Only admins can generate credentials for staff." });
+        return;
+    }
+    const password = Math.random().toString(36).slice(-8);
+    const credential = { email: staff.email, password: password, role: 'teacher' };
+
+    const storedCredentialsString = localStorage.getItem('userCredentials');
+    const storedCredentials = storedCredentialsString ? JSON.parse(storedCredentialsString) : [];
+    
+    const existingUserIndex = storedCredentials.findIndex((cred: any) => cred.email === staff.email);
+    if (existingUserIndex > -1) {
+        storedCredentials[existingUserIndex].password = password;
+    } else {
+        storedCredentials.push(credential);
+    }
+
+    localStorage.setItem('userCredentials', JSON.stringify(storedCredentials));
+    setGeneratedCredential(credential);
+  };
+
+  const columns = getColumns({router, toast, handleDelete, handleStatusChange, handleGenerateCredentials});
 
   const table = useReactTable({
     data,
@@ -321,6 +370,11 @@ export function StaffTable() {
       description: `${selectedIds.length} staff member(s) have been removed.`,
     });
   };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast({ title: 'Copied!', description: 'Password has been copied to clipboard.' });
+  }
 
   return (
     <div className="w-full">
@@ -471,8 +525,33 @@ export function StaffTable() {
           </Button>
         </div>
       </div>
+      <Dialog open={!!generatedCredential} onOpenChange={(isOpen) => !isOpen && setGeneratedCredential(null)}>
+        {generatedCredential && (
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Generated Credentials</DialogTitle>
+                    <DialogDescription>
+                        These are the temporary login credentials. Please share them securely.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                    <div>
+                        <Label htmlFor="email">Email</Label>
+                        <Input id="email" value={generatedCredential.email} readOnly />
+                    </div>
+                    <div>
+                        <Label htmlFor="password">Password</Label>
+                        <div className="flex items-center gap-2">
+                            <Input id="password" value={generatedCredential.password} readOnly />
+                            <Button variant="outline" size="icon" onClick={() => copyToClipboard(generatedCredential.password || '')}>
+                                <Copy className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            </DialogContent>
+        )}
+      </Dialog>
     </div>
   )
 }
-
-    

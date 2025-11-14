@@ -8,6 +8,8 @@ import {
   ChevronDown,
   MoreHorizontal,
   Trash2,
+  KeyRound,
+  Copy,
 } from "lucide-react"
 import {
   ColumnDef,
@@ -54,8 +56,16 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog"
 import { useToast } from "@/hooks/use-toast"
 import { studentsData as defaultStudentsData } from "@/lib/data"
+import { useCurrentUser } from "@/hooks/use-current-user"
 
 export type Student = {
   id: string
@@ -63,6 +73,11 @@ export type Student = {
   email: string
   joinDate: string
   status: "Active" | "Inactive" | "Suspended"
+}
+
+type GeneratedCredential = {
+    email: string,
+    password?: string
 }
 
 const getStatusVariant = (status: Student["status"]) => {
@@ -77,8 +92,15 @@ const getStatusVariant = (status: Student["status"]) => {
 }
 
 const getColumns = (
-    { router, toast, handleDelete, handleStatusChange }: 
-    { router: any, toast: any, handleDelete: (id: string) => void, handleStatusChange: (id: string, status: Student["status"]) => void }
+    { router, toast, handleDelete, handleStatusChange, handleGenerateCredentials, role }: 
+    { 
+      router: any, 
+      toast: any, 
+      handleDelete: (id: string) => void, 
+      handleStatusChange: (id: string, status: Student["status"]) => void,
+      handleGenerateCredentials: (student: Student) => void,
+      role: string | null
+    }
   ): ColumnDef<Student>[] => [
     {
       id: "select",
@@ -170,6 +192,12 @@ const getColumns = (
                 <DropdownMenuItem onClick={() => router.push(`/dashboard/students/${student.id}`)}>
                   View profile
                 </DropdownMenuItem>
+                { (role === 'admin' || role === 'teacher') &&
+                    <DropdownMenuItem onClick={() => handleGenerateCredentials(student)}>
+                        <KeyRound className="mr-2 h-4 w-4" />
+                        Generate Credentials
+                    </DropdownMenuItem>
+                }
                 <DropdownMenuSeparator />
                  <DropdownMenuItem
                   onClick={() => handleStatusChange(student.id, "Active")}
@@ -224,6 +252,7 @@ const getColumns = (
 export function StudentTable() {
   const router = useRouter();
   const { toast } = useToast();
+  const { role } = useCurrentUser();
   const [data, setData] = React.useState<Student[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [sorting, setSorting] = React.useState<SortingState>([])
@@ -233,6 +262,7 @@ export function StudentTable() {
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = React.useState({})
+  const [generatedCredential, setGeneratedCredential] = React.useState<GeneratedCredential | null>(null);
 
   const loadStudents = React.useCallback(() => {
     setIsLoading(true);
@@ -242,14 +272,13 @@ export function StudentTable() {
         if (storedStudents) {
           setData(JSON.parse(storedStudents));
         } else {
-          // Initialize with default data if nothing is in localStorage
           localStorage.setItem('studentsData', JSON.stringify(defaultStudentsData));
           setData(defaultStudentsData);
         }
       }
     } catch (error) {
       console.error("Failed to load students from localStorage", error);
-      setData(defaultStudentsData); // Fallback to default
+      setData(defaultStudentsData);
     } finally {
       setIsLoading(false);
     }
@@ -280,20 +309,44 @@ export function StudentTable() {
       description: `Student with ID ${studentId} has been removed.`,
     });
   };
+
+  const handleStatusChange = (studentId: string, newStatus: Student["status"]) => {
+    const updatedStudents = data.map(student =>
+        student.id === studentId ? { ...student, status: newStatus } : student
+    );
+    setData(updatedStudents);
+    localStorage.setItem('studentsData', JSON.stringify(updatedStudents));
+    toast({
+        title: "Status Updated",
+        description: `Student ${studentId} has been marked as ${newStatus}.`,
+    });
+  }
+
+  const handleGenerateCredentials = (student: Student) => {
+    if (role !== 'teacher' && role !== 'admin') {
+        toast({ variant: 'destructive', title: "Permission Denied", description: "Only teachers or admins can generate credentials." });
+        return;
+    }
+    const password = Math.random().toString(36).slice(-8);
+    const credential = { email: student.email, password: password, role: 'student' };
+
+    const storedCredentialsString = localStorage.getItem('userCredentials');
+    const storedCredentials = storedCredentialsString ? JSON.parse(storedCredentialsString) : [];
+    
+    const existingUserIndex = storedCredentials.findIndex((cred: any) => cred.email === student.email);
+    if (existingUserIndex > -1) {
+        storedCredentials[existingUserIndex].password = password;
+    } else {
+        storedCredentials.push(credential);
+    }
+
+    localStorage.setItem('userCredentials', JSON.stringify(storedCredentials));
+    setGeneratedCredential(credential);
+  };
   
   const table = useReactTable({
     data,
-    columns: getColumns({ router, toast, handleDelete: handleDelete, handleStatusChange: (studentId, newStatus) => {
-        const updatedStudents = data.map(student =>
-            student.id === studentId ? { ...student, status: newStatus } : student
-        );
-        setData(updatedStudents);
-        localStorage.setItem('studentsData', JSON.stringify(updatedStudents));
-        toast({
-            title: "Status Updated",
-            description: `Student ${studentId} has been marked as ${newStatus}.`,
-        });
-    } }),
+    columns: getColumns({ router, toast, handleDelete, handleStatusChange, handleGenerateCredentials, role }),
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
@@ -321,6 +374,11 @@ export function StudentTable() {
       description: `${selectedIds.length} student(s) have been removed.`,
     });
   };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast({ title: 'Copied!', description: 'Password has been copied to clipboard.' });
+  }
 
   return (
     <div className="w-full">
@@ -471,7 +529,33 @@ export function StudentTable() {
           </Button>
         </div>
       </div>
+      <Dialog open={!!generatedCredential} onOpenChange={(isOpen) => !isOpen && setGeneratedCredential(null)}>
+        {generatedCredential && (
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Generated Credentials</DialogTitle>
+                    <DialogDescription>
+                        These are the temporary login credentials. Please share them securely.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                    <div>
+                        <Label htmlFor="email">Email</Label>
+                        <Input id="email" value={generatedCredential.email} readOnly />
+                    </div>
+                    <div>
+                        <Label htmlFor="password">Password</Label>
+                        <div className="flex items-center gap-2">
+                            <Input id="password" value={generatedCredential.password} readOnly />
+                            <Button variant="outline" size="icon" onClick={() => copyToClipboard(generatedCredential.password || '')}>
+                                <Copy className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            </DialogContent>
+        )}
+      </Dialog>
     </div>
   )
-
-    
+}
