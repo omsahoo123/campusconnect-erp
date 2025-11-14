@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import * as React from "react"
@@ -130,6 +131,18 @@ export function StudentTable() {
     });
   };
 
+  const handleStatusChange = (studentId: string, newStatus: Student["status"]) => {
+    const updatedStudents = data.map(student => 
+      student.id === studentId ? { ...student, status: newStatus } : student
+    );
+    setData(updatedStudents);
+    localStorage.setItem('studentsData', JSON.stringify(updatedStudents));
+    toast({
+      title: "Status Updated",
+      description: `Student ${studentId} has been marked as ${newStatus}.`,
+    });
+  }
+
   const columns: ColumnDef<Student>[] = [
     {
       id: "select",
@@ -221,6 +234,20 @@ export function StudentTable() {
                 <DropdownMenuItem onClick={() => router.push(`/dashboard/students/${student.id}`)}>
                   View profile
                 </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                 <DropdownMenuItem
+                  onClick={() => handleStatusChange(student.id, "Active")}
+                  disabled={student.status === "Active"}
+                >
+                  Mark as Active
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => handleStatusChange(student.id, "Suspended")}
+                  disabled={student.status === "Suspended"}
+                >
+                  Mark as Suspended
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <AlertDialogTrigger asChild>
                   <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10">
                     Delete student
