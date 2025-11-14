@@ -8,6 +8,7 @@ import {
   ArrowUpDown,
   ChevronDown,
   MoreHorizontal,
+  Trash2,
 } from "lucide-react"
 import {
   ColumnDef,
@@ -81,7 +82,13 @@ export function StudentTable() {
   const { toast } = useToast();
   const [data, setData] = React.useState<Student[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
-
+  const [sorting, setSorting] = React.useState<SortingState>([])
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    []
+  )
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>({})
+  const [rowSelection, setRowSelection] = React.useState({})
 
   const loadStudents = React.useCallback(() => {
     setIsLoading(true);
@@ -120,7 +127,6 @@ export function StudentTable() {
     };
   }, [loadStudents]);
 
-
   const handleDelete = (studentId: string) => {
     const updatedStudents = data.filter(student => student.id !== studentId);
     setData(updatedStudents);
@@ -130,20 +136,52 @@ export function StudentTable() {
       description: `Student with ID ${studentId} has been removed.`,
     });
   };
+  
+  const table = useReactTable({
+    data,
+    columns: getColumns({ router, toast, handleDelete: handleDelete, handleStatusChange: (studentId, newStatus) => {
+        const updatedStudents = data.map(student =>
+            student.id === studentId ? { ...student, status: newStatus } : student
+        );
+        setData(updatedStudents);
+        localStorage.setItem('studentsData', JSON.stringify(updatedStudents));
+        toast({
+            title: "Status Updated",
+            description: `Student ${studentId} has been marked as ${newStatus}.`,
+        });
+    } }),
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    onColumnVisibilityChange: setColumnVisibility,
+    onRowSelectionChange: setRowSelection,
+    state: {
+      sorting,
+      columnFilters,
+      columnVisibility,
+      rowSelection,
+    },
+  })
 
-  const handleStatusChange = (studentId: string, newStatus: Student["status"]) => {
-    const updatedStudents = data.map(student => 
-      student.id === studentId ? { ...student, status: newStatus } : student
-    );
+  const handleDeleteSelected = () => {
+    const selectedIds = table.getFilteredSelectedRowModel().rows.map(row => row.original.id);
+    const updatedStudents = data.filter(student => !selectedIds.includes(student.id));
     setData(updatedStudents);
     localStorage.setItem('studentsData', JSON.stringify(updatedStudents));
+    table.resetRowSelection();
     toast({
-      title: "Status Updated",
-      description: `Student ${studentId} has been marked as ${newStatus}.`,
+      title: "Students Deleted",
+      description: `${selectedIds.length} student(s) have been removed.`,
     });
-  }
+  };
 
-  const columns: ColumnDef<Student>[] = [
+  const getColumns = (
+    { router, toast, handleDelete, handleStatusChange }: 
+    { router: any, toast: any, handleDelete: (id: string) => void, handleStatusChange: (id: string, status: Student["status"]) => void }
+  ): ColumnDef<Student>[] => [
     {
       id: "select",
       header: ({ table }) => (
@@ -285,34 +323,6 @@ export function StudentTable() {
     },
   ]
 
-
-  const [sorting, setSorting] = React.useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
-  )
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({})
-  const [rowSelection, setRowSelection] = React.useState({})
-
-  const table = useReactTable({
-    data,
-    columns,
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
-    state: {
-      sorting,
-      columnFilters,
-      columnVisibility,
-      rowSelection,
-    },
-  })
-
   return (
     <div className="w-full">
       <div className="flex items-center py-4">
@@ -324,6 +334,34 @@ export function StudentTable() {
           }
           className="max-w-sm"
         />
+        {table.getFilteredSelectedRowModel().rows.length > 0 && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" className="ml-4">
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete ({table.getFilteredSelectedRowModel().rows.length})
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete the
+                  selected student records from the servers.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-destructive hover:bg-destructive/90"
+                  onClick={handleDeleteSelected}
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">
@@ -375,7 +413,7 @@ export function StudentTable() {
             {isLoading ? (
               <TableRow>
                   <TableCell
-                  colSpan={columns.length}
+                  colSpan={table.getAllColumns().length}
                   className="h-24 text-center"
                   >
                   Loading students...
@@ -400,7 +438,7 @@ export function StudentTable() {
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={columns.length}
+                  colSpan={table.getAllColumns().length}
                   className="h-24 text-center"
                 >
                   No results.
