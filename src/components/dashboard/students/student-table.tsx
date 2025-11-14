@@ -242,6 +242,12 @@ export function StudentTable() {
                   Mark as Active
                 </DropdownMenuItem>
                 <DropdownMenuItem
+                  onClick={() => handleStatusChange(student.id, "Inactive")}
+                  disabled={student.status === "Inactive"}
+                >
+                  Mark as Inactive
+                </DropdownMenuItem>
+                <DropdownMenuItem
                   onClick={() => handleStatusChange(student.id, "Suspended")}
                   disabled={student.status === "Suspended"}
                 >
