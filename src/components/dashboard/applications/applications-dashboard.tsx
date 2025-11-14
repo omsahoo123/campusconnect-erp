@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { studentsData as defaultStudentsData } from "@/lib/data";
+import { studentsData as defaultStudentsData, staffData as defaultStaffData } from "@/lib/data";
 import {
   Dialog,
   DialogContent,
@@ -90,41 +90,61 @@ export function ApplicationsDashboard() {
   }, [loadApplications]);
 
 
-  const handleApprove = (type: 'student' | 'teacher', id: string, name: string, appData?: StudentApplication) => {
-    if (type === 'student' && appData) {
+  const handleApprove = (type: 'student' | 'teacher', app: StudentApplication | TeacherApplication) => {
+    if (type === 'student') {
+      const studentApp = app as StudentApplication;
       // Add to main students list
       const storedStudentsString = localStorage.getItem('studentsData');
       const currentStudents = storedStudentsString ? JSON.parse(storedStudentsString) : defaultStudentsData;
       
       const newStudent = {
         id: `STU${Date.now()}`.slice(0, 6),
-        name: appData.name,
-        email: appData.email,
+        name: studentApp.name,
+        email: studentApp.email,
         joinDate: new Date().toISOString(),
         status: "Active" as const
       };
 
       const updatedStudents = [...currentStudents, newStudent];
       localStorage.setItem('studentsData', JSON.stringify(updatedStudents));
-      window.dispatchEvent(new Event('storage')); // Manually trigger storage event for other components
+      window.dispatchEvent(new Event('storage'));
 
       // Remove from applications
-      const updatedApps = studentApps.filter(app => app.id !== id);
+      const updatedApps = studentApps.filter(a => a.id !== app.id);
       setStudentApps(updatedApps);
       localStorage.setItem('studentApplications', JSON.stringify(updatedApps));
 
       toast({
         title: "Application Approved",
-        description: `${name}'s application has been approved and they have been added to the student list.`,
+        description: `${app.name}'s application has been approved and they have been added to the student list.`,
       });
 
     } else if (type === 'teacher') {
-      const updatedApps = teacherApps.filter(app => app.id !== id);
+      const teacherApp = app as TeacherApplication;
+      
+      // Add to main staff list
+      const storedStaffString = localStorage.getItem('staffData');
+      const currentStaff = storedStaffString ? JSON.parse(storedStaffString) : defaultStaffData;
+
+      const newStaff = {
+        id: `TCH${Date.now()}`.slice(0, 6),
+        name: teacherApp.name,
+        email: teacherApp.email,
+        department: teacherApp.subject,
+        status: "Active" as const
+      };
+
+      const updatedStaff = [...currentStaff, newStaff];
+      localStorage.setItem('staffData', JSON.stringify(updatedStaff));
+      window.dispatchEvent(new Event('storage'));
+
+      // Remove from applications
+      const updatedApps = teacherApps.filter(a => a.id !== app.id);
       setTeacherApps(updatedApps);
       localStorage.setItem('teacherApplications', JSON.stringify(updatedApps));
       toast({
         title: "Application Approved",
-        description: `${name}'s application has been approved.`,
+        description: `${app.name}'s application has been approved and they have been added to the staff list.`,
       });
     }
   };
@@ -183,7 +203,7 @@ export function ApplicationsDashboard() {
                     <TableCell className="capitalize">{app.gender}</TableCell>
                     <TableCell>{new Date(app.date).toLocaleDateString()}</TableCell>
                     <TableCell className="text-right space-x-2">
-                      <Button size="sm" onClick={() => handleApprove('student', app.id, app.name, app)}>Approve</Button>
+                      <Button size="sm" onClick={() => handleApprove('student', app)}>Approve</Button>
                       <Button size="sm" variant="outline" onClick={() => handleReject('student', app.id, app.name)}>Reject</Button>
                     </TableCell>
                   </TableRow>
@@ -246,7 +266,7 @@ export function ApplicationsDashboard() {
                         <Badge variant={app.status === 'Pending' ? 'secondary' : 'default'}>{app.status}</Badge>
                       </TableCell>
                       <TableCell className="text-right space-x-2">
-                        <Button size="sm" onClick={() => handleApprove('teacher', app.id, app.name)}>Approve</Button>
+                        <Button size="sm" onClick={() => handleApprove('teacher', app)}>Approve</Button>
                         <Button size="sm" variant="outline" onClick={() => handleReject('teacher', app.id, app.name)}>Reject</Button>
                       </TableCell>
                     </TableRow>
@@ -294,3 +314,5 @@ export function ApplicationsDashboard() {
     </div>
   );
 }
+
+    

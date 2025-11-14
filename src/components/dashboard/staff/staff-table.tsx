@@ -55,6 +55,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { useToast } from "@/hooks/use-toast"
+import { staffData as defaultStaffData } from "@/lib/data"
 
 export type Staff = {
   id: string
@@ -75,140 +76,134 @@ const getStatusVariant = (status: Staff["status"]) => {
   }
 }
 
-export function StaffTable({ data: initialData }: { data: Staff[] }) {
+const getColumns = (
+  { router, toast, handleDelete }:
+  { router: any, toast: any, handleDelete: (id: string) => void }
+): ColumnDef<Staff>[] => [
+  {
+    id: "select",
+    header: ({ table }) => (
+      <Checkbox
+        checked={
+          table.getIsAllPageRowsSelected() ||
+          (table.getIsSomePageRowsSelected() && "indeterminate")
+        }
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        aria-label="Select all"
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        aria-label="Select row"
+      />
+    ),
+    enableSorting: false,
+    enableHiding: false,
+  },
+  {
+    accessorKey: "name",
+    header: "Name",
+    cell: ({ row }) => (
+      <div className="font-medium">{row.getValue("name")}</div>
+    ),
+  },
+  {
+    accessorKey: "email",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Email
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      )
+    },
+    cell: ({ row }) => <div className="lowercase">{row.getValue("email")}</div>,
+  },
+   {
+    accessorKey: "department",
+    header: "Department",
+    cell: ({ row }) => (
+      <div>{row.getValue("department")}</div>
+    ),
+  },
+  {
+    accessorKey: "status",
+    header: "Status",
+    cell: ({ row }) => {
+        const status = row.getValue("status") as Staff["status"];
+        return <Badge variant={getStatusVariant(status)}>{status}</Badge>
+    },
+  },
+  {
+    id: "actions",
+    enableHiding: false,
+    cell: ({ row }) => {
+      const staff = row.original
+
+      return (
+        <AlertDialog>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuItem
+                onClick={() => {
+                  navigator.clipboard.writeText(staff.id)
+                  toast({ title: "Copied!", description: "Staff ID copied to clipboard." })
+                }}
+              >
+                Copy staff ID
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => router.push(`/dashboard/staff/${staff.id}`)}>
+                View profile
+              </DropdownMenuItem>
+              <AlertDialogTrigger asChild>
+                <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10">
+                  Delete staff member
+                </DropdownMenuItem>
+              </AlertDialogTrigger>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete the
+                staff member's record.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-destructive hover:bg-destructive/90"
+                onClick={() => handleDelete(staff.id)}
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )
+    },
+  },
+]
+
+export function StaffTable() {
   const router = useRouter();
   const { toast } = useToast();
-  const [data, setData] = React.useState(initialData);
-
-  const handleDelete = (staffId: string) => {
-    setData(data.filter(staff => staff.id !== staffId));
-    toast({
-      title: "Staff Deleted",
-      description: `Staff member with ID ${staffId} has been removed.`,
-    });
-  };
-
-  const columns: ColumnDef<Staff>[] = [
-    {
-      id: "select",
-      header: ({ table }) => (
-        <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
-          }
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-        />
-      ),
-      enableSorting: false,
-      enableHiding: false,
-    },
-    {
-      accessorKey: "name",
-      header: "Name",
-      cell: ({ row }) => (
-        <div className="font-medium">{row.getValue("name")}</div>
-      ),
-    },
-    {
-      accessorKey: "email",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Email
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        )
-      },
-      cell: ({ row }) => <div className="lowercase">{row.getValue("email")}</div>,
-    },
-     {
-      accessorKey: "department",
-      header: "Department",
-      cell: ({ row }) => (
-        <div>{row.getValue("department")}</div>
-      ),
-    },
-    {
-      accessorKey: "status",
-      header: "Status",
-      cell: ({ row }) => {
-          const status = row.getValue("status") as Staff["status"];
-          return <Badge variant={getStatusVariant(status)}>{status}</Badge>
-      },
-    },
-    {
-      id: "actions",
-      enableHiding: false,
-      cell: ({ row }) => {
-        const staff = row.original
-
-        return (
-          <AlertDialog>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0">
-                  <span className="sr-only">Open menu</span>
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuItem
-                  onClick={() => {
-                    navigator.clipboard.writeText(staff.id)
-                    toast({ title: "Copied!", description: "Staff ID copied to clipboard." })
-                  }}
-                >
-                  Copy staff ID
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => router.push(`/dashboard/staff/${staff.id}`)}>
-                  View profile
-                </DropdownMenuItem>
-                <AlertDialogTrigger asChild>
-                  <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10">
-                    Delete staff member
-                  </DropdownMenuItem>
-                </AlertDialogTrigger>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This action cannot be undone. This will permanently delete the
-                  staff member's record.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  className="bg-destructive hover:bg-destructive/90"
-                  onClick={() => handleDelete(staff.id)}
-                >
-                  Delete
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        )
-      },
-    },
-  ]
-
-
+  const [data, setData] = React.useState<Staff[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -216,6 +211,52 @@ export function StaffTable({ data: initialData }: { data: Staff[] }) {
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = React.useState({})
+
+  const loadStaff = React.useCallback(() => {
+    setIsLoading(true);
+    try {
+      if (typeof window !== 'undefined') {
+        const storedStaff = localStorage.getItem('staffData');
+        if (storedStaff) {
+          setData(JSON.parse(storedStaff));
+        } else {
+          localStorage.setItem('staffData', JSON.stringify(defaultStaffData));
+          setData(defaultStaffData);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to load staff from localStorage", error);
+      setData(defaultStaffData);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    loadStaff();
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === 'staffData') {
+        loadStaff();
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [loadStaff]);
+
+
+  const handleDelete = (staffId: string) => {
+    const updatedStaff = data.filter(staff => staff.id !== staffId);
+    setData(updatedStaff);
+    localStorage.setItem('staffData', JSON.stringify(updatedStaff));
+    toast({
+      title: "Staff Deleted",
+      description: `Staff member with ID ${staffId} has been removed.`,
+    });
+  };
+
+  const columns = getColumns({router, toast, handleDelete});
 
   const table = useReactTable({
     data,
@@ -240,6 +281,7 @@ export function StaffTable({ data: initialData }: { data: Staff[] }) {
     const selectedIds = table.getFilteredSelectedRowModel().rows.map(row => row.original.id);
     const updatedStaff = data.filter(staff => !selectedIds.includes(staff.id));
     setData(updatedStaff);
+    localStorage.setItem('staffData', JSON.stringify(updatedStaff));
     table.resetRowSelection();
     toast({
       title: "Staff Members Deleted",
@@ -334,7 +376,16 @@ export function StaffTable({ data: initialData }: { data: Staff[] }) {
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {isLoading ? (
+               <TableRow>
+                  <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                  >
+                  Loading staff...
+                  </TableCell>
+              </TableRow>
+            ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
@@ -390,3 +441,5 @@ export function StaffTable({ data: initialData }: { data: Staff[] }) {
     </div>
   )
 }
+
+    
