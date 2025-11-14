@@ -567,3 +567,5 @@ export function StudentTable() {
     </div>
   )
 }
+
+    

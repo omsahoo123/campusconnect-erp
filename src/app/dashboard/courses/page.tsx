@@ -1,9 +1,10 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { teacherScheduleData as defaultTeacherScheduleData, studentsData as allStudentsData } from "@/lib/data";
+import { teacherScheduleData as defaultTeacherScheduleData } from "@/lib/data";
+import { type Student } from "@/components/dashboard/students/student-table";
 import { BookOpen, Users, Edit, Clock, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,6 +23,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { studentsData as defaultStudentsData } from "@/lib/data";
 
 type Course = {
     class: string;
@@ -37,6 +39,7 @@ export default function CoursesPage() {
     const { toast } = useToast();
     const [teacherScheduleData, setTeacherScheduleData] = useState<Course[]>(defaultTeacherScheduleData);
     const [enrollments, setEnrollments] = useState<Enrollment>({});
+    const [allStudentsData, setAllStudentsData] = useState<Student[]>([]);
 
     const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
     const [dialogType, setDialogType] = useState<'edit' | 'students' | null>(null);
@@ -44,27 +47,45 @@ export default function CoursesPage() {
     const [editedCourse, setEditedCourse] = useState<{name: string, location: string, time: string}>({name: '', location: '', time: ''});
     const [studentToAdd, setStudentToAdd] = useState<string>('');
 
-    useEffect(() => {
+    const loadData = useCallback(() => {
         try {
             const storedEnrollments = localStorage.getItem('courseEnrollments');
+            const storedStudents = localStorage.getItem('studentsData');
+            
+            const students = storedStudents ? JSON.parse(storedStudents) : defaultStudentsData;
+            setAllStudentsData(students);
+
             if (storedEnrollments) {
                 setEnrollments(JSON.parse(storedEnrollments));
             } else {
                 // Initialize with some default enrollments if none exist
                 const initialEnrollments: Enrollment = {};
                 defaultTeacherScheduleData.forEach((course, courseIndex) => {
-                    const studentsPerCourse = Math.floor(allStudentsData.length / defaultTeacherScheduleData.length);
+                    const studentsPerCourse = Math.floor(students.length / defaultTeacherScheduleData.length);
                     const startIndex = courseIndex * studentsPerCourse;
                     const endIndex = startIndex + studentsPerCourse;
-                    initialEnrollments[course.class] = allStudentsData.slice(startIndex, endIndex).map(s => s.id);
+                    initialEnrollments[course.class] = students.slice(startIndex, endIndex).map(s => s.id);
                 });
                 setEnrollments(initialEnrollments);
                 localStorage.setItem('courseEnrollments', JSON.stringify(initialEnrollments));
             }
         } catch (e) {
-            console.error("Failed to load or initialize enrollments", e);
+            console.error("Failed to load or initialize data", e);
         }
     }, []);
+    
+    useEffect(() => {
+        loadData();
+
+        const handleStorageChange = (event: StorageEvent) => {
+            if (event.key === 'studentsData' || event.key === 'courseEnrollments') {
+                loadData();
+            }
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+        return () => window.removeEventListener('storage', handleStorageChange);
+    }, [loadData]);
 
     const updateEnrollments = (newEnrollments: Enrollment) => {
         setEnrollments(newEnrollments);
@@ -157,7 +178,7 @@ export default function CoursesPage() {
         if (!selectedCourse) return [];
         const enrolledIds = enrollments[selectedCourse.class] || [];
         return allStudentsData.filter(s => !enrolledIds.includes(s.id));
-    }, [selectedCourse, enrollments]);
+    }, [selectedCourse, enrollments, allStudentsData]);
 
     return (
         <div className="space-y-6">
