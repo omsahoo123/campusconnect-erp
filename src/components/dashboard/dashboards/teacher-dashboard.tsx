@@ -6,12 +6,15 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const studentPerformance = [
     { name: "Liam Smith", attendance: "95%", grade: "A+" },
     { name: "Olivia Brown", attendance: "88%", grade: "A" },
     { name: "Noah Jones", attendance: "74%", grade: "C", issue: true },
     { name: "Emma Garcia", attendance: "98%", grade: "A+" },
+    { name: "Oliver Miller", attendance: "91%", grade: "A-" },
+    { name: "Ava Davis", attendance: "85%", grade: "B" },
 ];
 
 export function TeacherDashboard() {
@@ -91,36 +94,33 @@ export function TeacherDashboard() {
         </Card>
 
         <Card className="col-span-1 lg:col-span-4">
-          <CardHeader className="flex items-center justify-between">
-            <div>
-                <CardTitle>Calculus I Performance</CardTitle>
-                <CardDescription>A quick look at student performance.</CardDescription>
-            </div>
-            <Button asChild variant="secondary" size="sm">
-                <Link href="/dashboard/students">View All</Link>
-            </Button>
+          <CardHeader>
+            <CardTitle>Calculus I Performance</CardTitle>
+            <CardDescription>A quick look at student performance.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Table>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>Student</TableHead>
-                        <TableHead>Attendance</TableHead>
-                        <TableHead>Current Grade</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {studentPerformance.map((student) => (
-                        <TableRow key={student.name} className={student.issue ? "bg-amber-50 dark:bg-amber-900/20" : ""}>
-                            <TableCell className="font-medium">{student.name}</TableCell>
-                            <TableCell>{student.attendance}</TableCell>
-                            <TableCell>
-                                <Badge variant={student.issue ? "destructive" : "secondary"}>{student.grade}</Badge>
-                            </TableCell>
+            <ScrollArea className="h-[240px]">
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Student</TableHead>
+                            <TableHead>Attendance</TableHead>
+                            <TableHead>Current Grade</TableHead>
                         </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
+                    </TableHeader>
+                    <TableBody>
+                        {studentPerformance.map((student) => (
+                            <TableRow key={student.name} className={student.issue ? "bg-amber-50 dark:bg-amber-900/20" : ""}>
+                                <TableCell className="font-medium">{student.name}</TableCell>
+                                <TableCell>{student.attendance}</TableCell>
+                                <TableCell>
+                                    <Badge variant={student.issue ? "destructive" : "secondary"}>{student.grade}</Badge>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </ScrollArea>
           </CardContent>
         </Card>
       </div>
