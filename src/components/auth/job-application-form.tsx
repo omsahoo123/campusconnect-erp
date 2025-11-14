@@ -1,3 +1,4 @@
+
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -77,9 +78,12 @@ export function JobApplicationForm() {
     const newApp = {
       id: `APP${Date.now()}`,
       name: `${values.firstName} ${values.lastName}`,
+      email: values.email,
+      phone: values.phone,
       subject: values.subject,
+      qualification: values.qualification,
       experience: `${values.experience} years`,
-      resume: 'View',
+      coverLetter: values.coverLetter,
       status: 'Pending',
     };
 

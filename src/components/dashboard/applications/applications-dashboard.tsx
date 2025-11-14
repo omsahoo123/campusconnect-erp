@@ -8,6 +8,16 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { studentsData as defaultStudentsData } from "@/lib/data";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { ScrollArea } from "@/components/ui/scroll-area";
+
 
 interface StudentApplication {
   id: string;
@@ -22,9 +32,12 @@ interface StudentApplication {
 interface TeacherApplication {
   id: string;
   name: string;
+  email: string;
+  phone: string;
   subject: string;
+  qualification: string;
   experience: string;
-  resume: string;
+  coverLetter: string;
   status: 'Pending';
 }
 
@@ -33,6 +46,7 @@ export function ApplicationsDashboard() {
   const [studentApps, setStudentApps] = useState<StudentApplication[]>([]);
   const [teacherApps, setTeacherApps] = useState<TeacherApplication[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedApp, setSelectedApp] = useState<TeacherApplication | null>(null);
 
   const loadApplications = useCallback(() => {
     setLoading(true);
@@ -176,43 +190,77 @@ export function ApplicationsDashboard() {
           <CardDescription>Review and process new teacher applications.</CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Applicant Name</TableHead>
-                <TableHead>Subject</TableHead>
-                <TableHead>Experience</TableHead>
-                <TableHead>Resume</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {teacherApps.length > 0 ? (
-                teacherApps.map((app) => (
-                  <TableRow key={app.id}>
-                    <TableCell className="font-medium">{app.name}</TableCell>
-                    <TableCell>{app.subject}</TableCell>
-                    <TableCell>{app.experience}</TableCell>
-                     <TableCell>
-                      <Button variant="link" className="p-0 h-auto">{app.resume}</Button>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={app.status === 'Pending' ? 'secondary' : 'default'}>{app.status}</Badge>
-                    </TableCell>
-                    <TableCell className="text-right space-x-2">
-                      <Button size="sm" onClick={() => handleApprove('teacher', app.id, app.name)}>Approve</Button>
-                      <Button size="sm" variant="outline" onClick={() => handleReject('teacher', app.id, app.name)}>Reject</Button>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
+          <Dialog>
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center h-24">No pending job applications.</TableCell>
+                  <TableHead>Applicant Name</TableHead>
+                  <TableHead>Subject</TableHead>
+                  <TableHead>Experience</TableHead>
+                  <TableHead>Resume</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {teacherApps.length > 0 ? (
+                  teacherApps.map((app) => (
+                    <TableRow key={app.id}>
+                      <TableCell className="font-medium">{app.name}</TableCell>
+                      <TableCell>{app.subject}</TableCell>
+                      <TableCell>{app.experience}</TableCell>
+                      <TableCell>
+                        <DialogTrigger asChild>
+                          <Button variant="link" className="p-0 h-auto" onClick={() => setSelectedApp(app)}>View</Button>
+                        </DialogTrigger>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={app.status === 'Pending' ? 'secondary' : 'default'}>{app.status}</Badge>
+                      </TableCell>
+                      <TableCell className="text-right space-x-2">
+                        <Button size="sm" onClick={() => handleApprove('teacher', app.id, app.name)}>Approve</Button>
+                        <Button size="sm" variant="outline" onClick={() => handleReject('teacher', app.id, app.name)}>Reject</Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center h-24">No pending job applications.</TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+             {selectedApp && (
+                <DialogContent className="sm:max-w-[600px]">
+                    <DialogHeader>
+                        <DialogTitle>Job Application: {selectedApp.name}</DialogTitle>
+                        <DialogDescription>
+                            {selectedApp.subject} - {selectedApp.experience} experience
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <h4 className="text-right font-semibold col-span-1">Email</h4>
+                            <p className="col-span-3">{selectedApp.email}</p>
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <h4 className="text-right font-semibold col-span-1">Phone</h4>
+                            <p className="col-span-3">{selectedApp.phone}</p>
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <h4 className="text-right font-semibold col-span-1">Qualification</h4>
+                            <p className="col-span-3">{selectedApp.qualification}</p>
+                        </div>
+                        <div className="grid grid-cols-4 items-start gap-4">
+                            <h4 className="text-right font-semibold col-span-1">Cover Letter</h4>
+                            <ScrollArea className="h-48 col-span-3 rounded-md border p-4">
+                               <p className="text-sm whitespace-pre-wrap">{selectedApp.coverLetter}</p>
+                            </ScrollArea>
+                        </div>
+                    </div>
+                </DialogContent>
+            )}
+          </Dialog>
         </CardContent>
       </Card>
     </div>
