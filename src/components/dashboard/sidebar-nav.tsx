@@ -9,7 +9,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, Users, GraduationCap, Briefcase, Banknote, BookOpen, Settings, FileText } from "lucide-react";
+import { LayoutDashboard, Users, GraduationCap, Briefcase, Banknote, BookOpen, Settings, FileText, CalendarCheck } from "lucide-react";
 import React from "react";
 
 const navItems = {
@@ -26,7 +26,7 @@ const navItems = {
     { href: "/dashboard", icon: <LayoutDashboard />, label: "Dashboard", tooltip: "Dashboard" },
     { href: "/dashboard/courses", icon: <BookOpen />, label: "My Courses", tooltip: "Courses" },
     { href: "/dashboard/students", icon: <Users />, label: "My Students", tooltip: "Students" },
-    { href: "/dashboard/attendance", icon: <GraduationCap />, label: "Attendance", tooltip: "Attendance" },
+    { href: "/dashboard/attendance", icon: <CalendarCheck />, label: "Attendance", tooltip: "Attendance" },
     { href: "/dashboard/settings", icon: <Settings />, label: "Settings", tooltip: "Settings" },
   ],
   student: [

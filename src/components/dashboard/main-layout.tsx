@@ -28,6 +28,8 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
     if (pathname.startsWith('/dashboard/staff')) return "Staff";
     if (pathname.startsWith('/dashboard/applications')) return "Applications";
     if (pathname.startsWith('/dashboard/settings')) return "Settings";
+    if (pathname.startsWith('/dashboard/courses')) return "Courses";
+    if (pathname.startsWith('/dashboard/attendance')) return "Attendance";
     return "Dashboard";
   }
 
@@ -53,7 +55,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
 
       <SidebarInset>
         <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-card px-4 sm:px-6">
-          <SidebarTrigger />
+          <SidebarTrigger className="md:flex" />
           <h1 className="text-lg font-semibold md:text-xl font-headline">{getPageTitle()}</h1>
           <div className="ml-auto">
             <UserNav />
