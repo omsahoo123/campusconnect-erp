@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { studentsData as defaultStudentsData } from "@/lib/data";
 
 interface StudentApplication {
   id: string;
@@ -15,6 +16,7 @@ interface StudentApplication {
   gender: 'male' | 'female' | 'other';
   date: string;
   status: 'Pending';
+  email: string;
 }
 
 interface TeacherApplication {
@@ -68,20 +70,43 @@ export function ApplicationsDashboard() {
   }, [loadApplications]);
 
 
-  const handleApprove = (type: 'student' | 'teacher', id: string, name: string) => {
-    if (type === 'student') {
+  const handleApprove = (type: 'student' | 'teacher', id: string, name: string, appData?: StudentApplication) => {
+    if (type === 'student' && appData) {
+      // Add to main students list
+      const storedStudentsString = localStorage.getItem('studentsData');
+      const currentStudents = storedStudentsString ? JSON.parse(storedStudentsString) : defaultStudentsData;
+      
+      const newStudent = {
+        id: `STU${Date.now()}`.slice(0, 6),
+        name: appData.name,
+        email: appData.email,
+        joinDate: new Date().toISOString(),
+        status: "Active" as const
+      };
+
+      const updatedStudents = [...currentStudents, newStudent];
+      localStorage.setItem('studentsData', JSON.stringify(updatedStudents));
+      window.dispatchEvent(new Event('storage')); // Manually trigger storage event for other components
+
+      // Remove from applications
       const updatedApps = studentApps.filter(app => app.id !== id);
       setStudentApps(updatedApps);
       localStorage.setItem('studentApplications', JSON.stringify(updatedApps));
-    } else {
+
+      toast({
+        title: "Application Approved",
+        description: `${name}'s application has been approved and they have been added to the student list.`,
+      });
+
+    } else if (type === 'teacher') {
       const updatedApps = teacherApps.filter(app => app.id !== id);
       setTeacherApps(updatedApps);
       localStorage.setItem('teacherApplications', JSON.stringify(updatedApps));
+      toast({
+        title: "Application Approved",
+        description: `${name}'s application has been approved.`,
+      });
     }
-    toast({
-      title: "Application Approved",
-      description: `${name}'s application has been approved.`,
-    });
   };
 
   const handleReject = (type: 'student' | 'teacher', id: string, name: string) => {
@@ -102,7 +127,7 @@ export function ApplicationsDashboard() {
   };
 
   if (loading) {
-    return <div>Loading...</div>
+    return <div>Loading applications...</div>
   }
 
   return (
@@ -117,29 +142,27 @@ export function ApplicationsDashboard() {
             <TableHeader>
               <TableRow>
                 <TableHead>Student Name</TableHead>
-                <TableHead>Grade</TableHead>
                 <TableHead>Gender</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>Application Date</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {studentApps.length > 0 ? (
                 studentApps.map((app) => (
                   <TableRow key={app.id}>
-                    <TableCell>{app.name}</TableCell>
-                    <TableCell>{app.grade}</TableCell>
+                    <TableCell className="font-medium">{app.name}</TableCell>
                     <TableCell className="capitalize">{app.gender}</TableCell>
                     <TableCell>{new Date(app.date).toLocaleDateString()}</TableCell>
-                    <TableCell className="space-x-2">
-                      <Button size="sm" onClick={() => handleApprove('student', app.id, app.name)}>Approve</Button>
-                      <Button size="sm" variant="destructive" onClick={() => handleReject('student', app.id, app.name)}>Reject</Button>
+                    <TableCell className="text-right space-x-2">
+                      <Button size="sm" onClick={() => handleApprove('student', app.id, app.name, app)}>Approve</Button>
+                      <Button size="sm" variant="outline" onClick={() => handleReject('student', app.id, app.name)}>Reject</Button>
                     </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center h-24">No pending applications.</TableCell>
+                  <TableCell colSpan={4} className="text-center h-24">No pending admission requests.</TableCell>
                 </TableRow>
               )}
             </TableBody>
@@ -159,16 +182,16 @@ export function ApplicationsDashboard() {
                 <TableHead>Applicant Name</TableHead>
                 <TableHead>Subject</TableHead>
                 <TableHead>Experience</TableHead>
-                <TableHead>Resume/Profile</TableHead>
+                <TableHead>Resume</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {teacherApps.length > 0 ? (
                 teacherApps.map((app) => (
                   <TableRow key={app.id}>
-                    <TableCell>{app.name}</TableCell>
+                    <TableCell className="font-medium">{app.name}</TableCell>
                     <TableCell>{app.subject}</TableCell>
                     <TableCell>{app.experience}</TableCell>
                      <TableCell>
@@ -177,9 +200,9 @@ export function ApplicationsDashboard() {
                     <TableCell>
                       <Badge variant={app.status === 'Pending' ? 'secondary' : 'default'}>{app.status}</Badge>
                     </TableCell>
-                    <TableCell className="space-x-2">
+                    <TableCell className="text-right space-x-2">
                       <Button size="sm" onClick={() => handleApprove('teacher', app.id, app.name)}>Approve</Button>
-                      <Button size="sm" variant="destructive" onClick={() => handleReject('teacher', app.id, app.name)}>Reject</Button>
+                      <Button size="sm" variant="outline" onClick={() => handleReject('teacher', app.id, app.name)}>Reject</Button>
                     </TableCell>
                   </TableRow>
                 ))

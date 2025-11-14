@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -53,6 +54,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { useToast } from "@/hooks/use-toast"
+import { studentsData as defaultStudentsData } from "@/lib/data"
 
 export type Student = {
   id: string
@@ -73,13 +75,55 @@ const getStatusVariant = (status: Student["status"]) => {
   }
 }
 
-export function StudentTable({ data: initialData }: { data: Student[] }) {
+export function StudentTable() {
   const router = useRouter();
   const { toast } = useToast();
-  const [data, setData] = React.useState(initialData);
+  const [data, setData] = React.useState<Student[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
+
+
+  const loadStudents = React.useCallback(() => {
+    setIsLoading(true);
+    try {
+      if (typeof window !== 'undefined') {
+        const storedStudents = localStorage.getItem('studentsData');
+        if (storedStudents) {
+          setData(JSON.parse(storedStudents));
+        } else {
+          // Initialize with default data if nothing is in localStorage
+          localStorage.setItem('studentsData', JSON.stringify(defaultStudentsData));
+          setData(defaultStudentsData);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to load students from localStorage", error);
+      setData(defaultStudentsData); // Fallback to default
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    loadStudents();
+
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === 'studentsData') {
+        loadStudents();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [loadStudents]);
+
 
   const handleDelete = (studentId: string) => {
-    setData(data.filter(student => student.id !== studentId));
+    const updatedStudents = data.filter(student => student.id !== studentId);
+    setData(updatedStudents);
+    localStorage.setItem('studentsData', JSON.stringify(updatedStudents));
     toast({
       title: "Student Deleted",
       description: `Student with ID ${studentId} has been removed.`,
@@ -295,7 +339,16 @@ export function StudentTable({ data: initialData }: { data: Student[] }) {
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {isLoading ? (
+              <TableRow>
+                  <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                  >
+                  Loading students...
+                  </TableCell>
+              </TableRow>
+            ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}

@@ -1,3 +1,4 @@
+
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -79,7 +80,8 @@ export function AdmissionsForm() {
       grade: 'N/A', // Grade is not in the form, setting a default
       gender: values.gender,
       date: new Date().toISOString(),
-      status: 'Pending',
+      status: 'Pending' as const,
+      email: values.email
     };
 
     const updatedApps = [...existingApps, newApp];
