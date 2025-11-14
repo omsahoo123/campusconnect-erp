@@ -66,6 +66,7 @@ import {
 import { useToast } from "@/hooks/use-toast"
 import { studentsData as defaultStudentsData } from "@/lib/data"
 import { useCurrentUser } from "@/hooks/use-current-user"
+import { Label } from "@/components/ui/label"
 
 export type Student = {
   id: string
@@ -344,9 +345,11 @@ export function StudentTable() {
     setGeneratedCredential(credential);
   };
   
+  const columns = getColumns({ router, toast, handleDelete, handleStatusChange, handleGenerateCredentials, role });
+
   const table = useReactTable({
     data,
-    columns: getColumns({ router, toast, handleDelete, handleStatusChange, handleGenerateCredentials, role }),
+    columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
