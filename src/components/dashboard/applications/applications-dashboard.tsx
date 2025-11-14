@@ -204,7 +204,7 @@ export function ApplicationsDashboard() {
           <CardDescription>Review and process new teacher applications.</CardDescription>
         </CardHeader>
         <CardContent>
-          <Dialog onOpenChange={() => setSelectedApp(null)}>
+          <Dialog onOpenChange={(isOpen) => !isOpen && setSelectedApp(null)}>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -258,43 +258,39 @@ export function ApplicationsDashboard() {
                 )}
               </TableBody>
             </Table>
-            <DialogContent className="sm:max-w-[600px]">
-              {selectedApp && (
-                <>
-                    <DialogHeader>
-                        <DialogTitle>Job Application: {selectedApp.name}</DialogTitle>
-                        <DialogDescription>
-                            {selectedApp.subject} - {selectedApp.experience} experience
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <h4 className="text-right font-semibold col-span-1">Email</h4>
-                            <p className="col-span-3">{selectedApp.email}</p>
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <h4 className="text-right font-semibold col-span-1">Phone</h4>
-                            <p className="col-span-3">{selectedApp.phone}</p>
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <h4 className="text-right font-semibold col-span-1">Qualification</h4>
-                            <p className="col-span-3">{selectedApp.qualification}</p>
-                        </div>
-                        <div className="grid grid-cols-4 items-start gap-4">
-                            <h4 className="text-right font-semibold col-span-1">Cover Letter</h4>
-                            <ScrollArea className="h-48 col-span-3 rounded-md border p-4">
-                               <p className="text-sm whitespace-pre-wrap">{selectedApp.coverLetter}</p>
-                            </ScrollArea>
-                        </div>
-                    </div>
-                </>
-              )}
-            </DialogContent>
+            {selectedApp && (
+              <DialogContent className="sm:max-w-[600px]">
+                  <DialogHeader>
+                      <DialogTitle>Job Application: {selectedApp.name}</DialogTitle>
+                      <DialogDescription>
+                          {selectedApp.subject} - {selectedApp.experience} experience
+                      </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                      <div className="grid grid-cols-4 items-center gap-4">
+                          <h4 className="text-right font-semibold col-span-1">Email</h4>
+                          <p className="col-span-3">{selectedApp.email}</p>
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                          <h4 className="text-right font-semibold col-span-1">Phone</h4>
+                          <p className="col-span-3">{selectedApp.phone}</p>
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                          <h4 className="text-right font-semibold col-span-1">Qualification</h4>
+                          <p className="col-span-3">{selectedApp.qualification}</p>
+                      </div>
+                      <div className="grid grid-cols-4 items-start gap-4">
+                          <h4 className="text-right font-semibold col-span-1">Cover Letter</h4>
+                          <ScrollArea className="h-48 col-span-3 rounded-md border p-4">
+                             <p className="text-sm whitespace-pre-wrap">{selectedApp.coverLetter}</p>
+                          </ScrollArea>
+                      </div>
+                  </div>
+              </DialogContent>
+            )}
           </Dialog>
         </CardContent>
       </Card>
     </div>
   );
 }
-
-    
