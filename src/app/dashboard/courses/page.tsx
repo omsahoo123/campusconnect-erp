@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { teacherScheduleData as defaultTeacherScheduleData, studentsData } from "@/lib/data";
-import { BookOpen, Users, Edit } from "lucide-react";
+import { BookOpen, Users, Edit, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -36,11 +36,11 @@ export default function CoursesPage() {
     });
     
     const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
-    const [editedCourse, setEditedCourse] = useState<{name: string, location: string}>({name: '', location: ''});
+    const [editedCourse, setEditedCourse] = useState<{name: string, location: string, time: string, studentCount: number}>({name: '', location: '', time: '', studentCount: 0});
 
     const handleEditClick = (course: Course) => {
         setSelectedCourse(course);
-        setEditedCourse({ name: course.class, location: course.location });
+        setEditedCourse({ name: course.class, location: course.location, time: course.time, studentCount: course.studentCount });
     };
 
     const handleSave = () => {
@@ -48,7 +48,13 @@ export default function CoursesPage() {
 
         const updatedCourses = teacherScheduleData.map(course => {
             if (course.class === selectedCourse.class) {
-                return { ...course, class: editedCourse.name, location: editedCourse.location };
+                return { 
+                    ...course, 
+                    class: editedCourse.name, 
+                    location: editedCourse.location,
+                    time: editedCourse.time,
+                    studentCount: Number(editedCourse.studentCount)
+                };
             }
             return course;
         });
@@ -87,7 +93,7 @@ export default function CoursesPage() {
                                     <span>{course.studentCount} students enrolled</span>
                                 </div>
                                 <div className="flex items-center text-sm text-muted-foreground mt-2">
-                                    <BookOpen className="h-4 w-4 mr-2" />
+                                    <Clock className="h-4 w-4 mr-2" />
                                     <span>Time: {course.time}</span>
                                 </div>
                             </CardContent>
@@ -122,6 +128,29 @@ export default function CoursesPage() {
                                     id="location"
                                     value={editedCourse.location}
                                     onChange={(e) => setEditedCourse(prev => ({...prev, location: e.target.value}))}
+                                    className="col-span-3"
+                                />
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="time" className="text-right">
+                                    Time
+                                </Label>
+                                <Input
+                                    id="time"
+                                    value={editedCourse.time}
+                                    onChange={(e) => setEditedCourse(prev => ({...prev, time: e.target.value}))}
+                                    className="col-span-3"
+                                />
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="studentCount" className="text-right">
+                                    Students
+                                </Label>
+                                <Input
+                                    id="studentCount"
+                                    type="number"
+                                    value={editedCourse.studentCount}
+                                    onChange={(e) => setEditedCourse(prev => ({...prev, studentCount: Number(e.target.value)}))}
                                     className="col-span-3"
                                 />
                             </div>

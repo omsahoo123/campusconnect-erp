@@ -3,6 +3,8 @@ import { Clock, Book, Users, BarChart } from "lucide-react";
 import { teacherScheduleData } from "@/lib/data";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 const studentPerformance = [
     { name: "Liam Smith", attendance: "95%", grade: "A+" },
@@ -63,9 +65,14 @@ export function TeacherDashboard() {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         <Card className="col-span-1 lg:col-span-3">
-          <CardHeader>
-            <CardTitle>Upcoming Schedule</CardTitle>
-            <CardDescription>Your classes for today.</CardDescription>
+          <CardHeader className="flex items-center justify-between">
+            <div>
+              <CardTitle>Upcoming Schedule</CardTitle>
+              <CardDescription>Your classes for today.</CardDescription>
+            </div>
+             <Button asChild variant="secondary" size="sm">
+                <Link href="/dashboard/courses">View All</Link>
+            </Button>
           </CardHeader>
           <CardContent className="space-y-4">
             {teacherScheduleData.map((item, index) => (
@@ -83,9 +90,14 @@ export function TeacherDashboard() {
         </Card>
 
         <Card className="col-span-1 lg:col-span-4">
-          <CardHeader>
-            <CardTitle>Calculus I Performance</CardTitle>
-            <CardDescription>A quick look at student performance.</CardDescription>
+          <CardHeader className="flex items-center justify-between">
+            <div>
+                <CardTitle>Calculus I Performance</CardTitle>
+                <CardDescription>A quick look at student performance.</CardDescription>
+            </div>
+            <Button asChild variant="secondary" size="sm">
+                <Link href="/dashboard/students">View All</Link>
+            </Button>
           </CardHeader>
           <CardContent>
             <Table>
