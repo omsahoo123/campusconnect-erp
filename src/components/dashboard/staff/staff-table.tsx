@@ -62,7 +62,7 @@ export type Staff = {
   name: string
   email: string
   department: string
-  status: "Active" | "On Leave"
+  status: "Active" | "On Leave" | "Inactive"
 }
 
 const getStatusVariant = (status: Staff["status"]) => {
@@ -70,6 +70,7 @@ const getStatusVariant = (status: Staff["status"]) => {
     case "Active":
       return "default"
     case "On Leave":
+    case "Inactive":
       return "secondary"
     default:
       return "outline"
@@ -77,8 +78,8 @@ const getStatusVariant = (status: Staff["status"]) => {
 }
 
 const getColumns = (
-  { router, toast, handleDelete }:
-  { router: any, toast: any, handleDelete: (id: string) => void }
+  { router, toast, handleDelete, handleStatusChange }:
+  { router: any, toast: any, handleDelete: (id: string) => void, handleStatusChange: (id: string, status: Staff["status"]) => void }
 ): ColumnDef<Staff>[] => [
   {
     id: "select",
@@ -168,6 +169,26 @@ const getColumns = (
               <DropdownMenuItem onClick={() => router.push(`/dashboard/staff/${staff.id}`)}>
                 View profile
               </DropdownMenuItem>
+              <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => handleStatusChange(staff.id, "Active")}
+                  disabled={staff.status === "Active"}
+                >
+                  Mark as Active
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => handleStatusChange(staff.id, "Inactive")}
+                  disabled={staff.status === "Inactive"}
+                >
+                  Mark as Inactive
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => handleStatusChange(staff.id, "On Leave")}
+                  disabled={staff.status === "On Leave"}
+                >
+                  Mark as On Leave
+                </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <AlertDialogTrigger asChild>
                 <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10">
                   Delete staff member
@@ -256,7 +277,19 @@ export function StaffTable() {
     });
   };
 
-  const columns = getColumns({router, toast, handleDelete});
+  const handleStatusChange = (staffId: string, newStatus: Staff["status"]) => {
+    const updatedStaff = data.map(staff =>
+      staff.id === staffId ? { ...staff, status: newStatus } : staff
+    );
+    setData(updatedStaff);
+    localStorage.setItem('staffData', JSON.stringify(updatedStaff));
+    toast({
+      title: "Status Updated",
+      description: `Staff member ${staffId} has been marked as ${newStatus}.`,
+    });
+  };
+
+  const columns = getColumns({router, toast, handleDelete, handleStatusChange});
 
   const table = useReactTable({
     data,

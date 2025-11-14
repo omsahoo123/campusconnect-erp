@@ -67,3 +67,5 @@ export const teacherScheduleData = [
     { time: '11:00 - 12:30', class: 'Linear Algebra', location: 'Room 302' },
     { time: '14:00 - 15:30', class: 'Advanced Statistics', location: 'Lab 5' },
 ];
+
+    
