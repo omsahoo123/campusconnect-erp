@@ -258,7 +258,7 @@ export function ApplicationsDashboard() {
                 )}
               </TableBody>
             </Table>
-            <DialogContent open={!!selectedApp} onOpenChange={(isOpen) => !isOpen && setSelectedApp(null)} className="sm:max-w-[600px]">
+            <DialogContent className="sm:max-w-[600px]">
               {selectedApp && (
                 <>
                     <DialogHeader>
@@ -296,3 +296,5 @@ export function ApplicationsDashboard() {
     </div>
   );
 }
+
+    
