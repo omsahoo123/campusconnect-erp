@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Clock, Book, Users, BarChart } from "lucide-react";
 import { teacherScheduleData } from "@/lib/data";
@@ -37,7 +38,7 @@ export function TeacherDashboard() {
             <Book className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">4</div>
+            <div className="text-2xl font-bold">{teacherScheduleData.length}</div>
             <p className="text-xs text-muted-foreground">for this semester</p>
           </CardContent>
         </Card>
