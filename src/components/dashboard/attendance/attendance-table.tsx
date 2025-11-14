@@ -11,6 +11,11 @@ import { teacherScheduleData } from "@/lib/data";
 import { useToast } from '@/hooks/use-toast';
 import { type Student } from "@/components/dashboard/students/student-table";
 import { studentsData as defaultStudentsData } from "@/lib/data";
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { CalendarIcon } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 
 interface AttendanceRecord {
@@ -21,17 +26,28 @@ type Enrollment = {
     [courseName: string]: string[]; // student IDs
 }
 
+type DailyAttendance = {
+    [date: string]: AttendanceRecord; // date is YYYY-MM-DD
+}
+
+type CourseAttendance = {
+    [courseName: string]: DailyAttendance;
+}
+
 export function AttendanceTable() {
     const { toast } = useToast();
     const [selectedCourse, setSelectedCourse] = useState<string>(teacherScheduleData[0].class);
+    const [selectedDate, setSelectedDate] = useState<Date>(new Date());
     const [attendance, setAttendance] = useState<AttendanceRecord>({});
     const [enrollments, setEnrollments] = useState<Enrollment>({});
     const [allStudentsData, setAllStudentsData] = useState<Student[]>([]);
+    const [allAttendanceData, setAllAttendanceData] = useState<CourseAttendance>({});
 
     const loadData = useCallback(() => {
         try {
             const storedEnrollments = localStorage.getItem('courseEnrollments');
             const storedStudents = localStorage.getItem('studentsData');
+            const storedAttendance = localStorage.getItem('allAttendanceData');
             
             const students = storedStudents ? JSON.parse(storedStudents) : defaultStudentsData;
             setAllStudentsData(students);
@@ -49,6 +65,11 @@ export function AttendanceTable() {
                 setEnrollments(initialEnrollments);
                 localStorage.setItem('courseEnrollments', JSON.stringify(initialEnrollments));
             }
+
+            if (storedAttendance) {
+                setAllAttendanceData(JSON.parse(storedAttendance));
+            }
+
         } catch (e) {
             console.error("Failed to load or initialize data", e);
         }
@@ -57,13 +78,24 @@ export function AttendanceTable() {
     useEffect(() => {
         loadData();
         const handleStorageChange = (event: StorageEvent) => {
-            if (event.key === 'studentsData' || event.key === 'courseEnrollments') {
+            if (event.key === 'studentsData' || event.key === 'courseEnrollments' || event.key === 'allAttendanceData') {
                 loadData();
             }
         };
         window.addEventListener('storage', handleStorageChange);
         return () => window.removeEventListener('storage', handleStorageChange);
     }, [loadData]);
+
+
+    useEffect(() => {
+        const dateString = format(selectedDate, 'yyyy-MM-dd');
+        const courseAttendance = allAttendanceData[selectedCourse];
+        if (courseAttendance && courseAttendance[dateString]) {
+            setAttendance(courseAttendance[dateString]);
+        } else {
+            setAttendance({});
+        }
+    }, [selectedCourse, selectedDate, allAttendanceData]);
 
 
     const studentsForCourse = useMemo(() => {
@@ -76,30 +108,35 @@ export function AttendanceTable() {
     };
 
     const handleSaveAttendance = () => {
-        const attendanceData = {
-            course: selectedCourse,
-            date: new Date().toISOString().split('T')[0],
-            records: attendance
+        const dateString = format(selectedDate, 'yyyy-MM-dd');
+        
+        const updatedAttendanceData: CourseAttendance = {
+            ...allAttendanceData,
+            [selectedCourse]: {
+                ...(allAttendanceData[selectedCourse] || {}),
+                [dateString]: attendance,
+            },
         };
-        // In a real app, you'd save this to a database. We'll just log it.
-        console.log("Saving attendance:", attendanceData);
+        
+        setAllAttendanceData(updatedAttendanceData);
+        localStorage.setItem('allAttendanceData', JSON.stringify(updatedAttendanceData));
+
         toast({
             title: "Attendance Saved",
-            description: `Attendance for ${selectedCourse} has been successfully recorded.`
+            description: `Attendance for ${selectedCourse} on ${format(selectedDate, 'PPP')} has been successfully recorded.`
         });
-        setAttendance({}); // Reset for next time
     };
 
     return (
         <Card>
             <CardHeader>
                 <CardTitle>Mark Attendance</CardTitle>
-                <CardDescription>Select a course and mark attendance for today's class.</CardDescription>
+                <CardDescription>Select a course and date to mark attendance.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-                <div className="flex items-center space-x-4">
+                <div className="flex flex-wrap items-center gap-4">
                     <Select onValueChange={setSelectedCourse} defaultValue={selectedCourse}>
-                        <SelectTrigger className="w-[280px]">
+                        <SelectTrigger className="w-full sm:w-[280px]">
                             <SelectValue placeholder="Select a course" />
                         </SelectTrigger>
                         <SelectContent>
@@ -110,9 +147,28 @@ export function AttendanceTable() {
                             ))}
                         </SelectContent>
                     </Select>
-                    <p className="text-sm text-muted-foreground">
-                        Date: {new Date().toLocaleDateString()}
-                    </p>
+                    <Popover>
+                        <PopoverTrigger asChild>
+                             <Button
+                                variant={"outline"}
+                                className={cn(
+                                    "w-full sm:w-[280px] justify-start text-left font-normal",
+                                    !selectedDate && "text-muted-foreground"
+                                )}
+                                >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                            <Calendar
+                                mode="single"
+                                selected={selectedDate}
+                                onSelect={(date) => date && setSelectedDate(date)}
+                                initialFocus
+                            />
+                        </PopoverContent>
+                    </Popover>
                 </div>
                 <div className="border rounded-md">
                     <Table>
@@ -124,28 +180,32 @@ export function AttendanceTable() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {studentsForCourse.map(student => (
-                                <TableRow key={student.id}>
-                                    <TableCell>{student.id}</TableCell>
-                                    <TableCell className="font-medium">{student.name}</TableCell>
-                                    <TableCell className="text-center">
-                                        <Checkbox
-                                            checked={attendance[student.id] || false}
-                                            onCheckedChange={(checked) => handleAttendanceChange(student.id, !!checked)}
-                                            aria-label={`Mark ${student.name} as present`}
-                                        />
-                                    </TableCell>
+                            {studentsForCourse.length > 0 ? (
+                                studentsForCourse.map(student => (
+                                    <TableRow key={student.id}>
+                                        <TableCell>{student.id}</TableCell>
+                                        <TableCell className="font-medium">{student.name}</TableCell>
+                                        <TableCell className="text-center">
+                                            <Checkbox
+                                                checked={attendance[student.id] || false}
+                                                onCheckedChange={(checked) => handleAttendanceChange(student.id, !!checked)}
+                                                aria-label={`Mark ${student.name} as present`}
+                                            />
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                             ) : (
+                                <TableRow>
+                                    <TableCell colSpan={3} className="text-center h-24">No students enrolled in this course.</TableCell>
                                 </TableRow>
-                            ))}
+                            )}
                         </TableBody>
                     </Table>
                 </div>
                 <div className="flex justify-end">
-                    <Button onClick={handleSaveAttendance}>Save Attendance</Button>
+                    <Button onClick={handleSaveAttendance} disabled={studentsForCourse.length === 0}>Save Attendance</Button>
                 </div>
             </CardContent>
         </Card>
     );
 }
-
-    
