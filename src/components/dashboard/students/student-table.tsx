@@ -1,5 +1,4 @@
 
-
 "use client"
 
 import * as React from "react"
@@ -77,108 +76,7 @@ const getStatusVariant = (status: Student["status"]) => {
   }
 }
 
-export function StudentTable() {
-  const router = useRouter();
-  const { toast } = useToast();
-  const [data, setData] = React.useState<Student[]>([]);
-  const [isLoading, setIsLoading] = React.useState(true);
-  const [sorting, setSorting] = React.useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
-  )
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({})
-  const [rowSelection, setRowSelection] = React.useState({})
-
-  const loadStudents = React.useCallback(() => {
-    setIsLoading(true);
-    try {
-      if (typeof window !== 'undefined') {
-        const storedStudents = localStorage.getItem('studentsData');
-        if (storedStudents) {
-          setData(JSON.parse(storedStudents));
-        } else {
-          // Initialize with default data if nothing is in localStorage
-          localStorage.setItem('studentsData', JSON.stringify(defaultStudentsData));
-          setData(defaultStudentsData);
-        }
-      }
-    } catch (error) {
-      console.error("Failed to load students from localStorage", error);
-      setData(defaultStudentsData); // Fallback to default
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  React.useEffect(() => {
-    loadStudents();
-
-    const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === 'studentsData') {
-        loadStudents();
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
-  }, [loadStudents]);
-
-  const handleDelete = (studentId: string) => {
-    const updatedStudents = data.filter(student => student.id !== studentId);
-    setData(updatedStudents);
-    localStorage.setItem('studentsData', JSON.stringify(updatedStudents));
-    toast({
-      title: "Student Deleted",
-      description: `Student with ID ${studentId} has been removed.`,
-    });
-  };
-  
-  const table = useReactTable({
-    data,
-    columns: getColumns({ router, toast, handleDelete: handleDelete, handleStatusChange: (studentId, newStatus) => {
-        const updatedStudents = data.map(student =>
-            student.id === studentId ? { ...student, status: newStatus } : student
-        );
-        setData(updatedStudents);
-        localStorage.setItem('studentsData', JSON.stringify(updatedStudents));
-        toast({
-            title: "Status Updated",
-            description: `Student ${studentId} has been marked as ${newStatus}.`,
-        });
-    } }),
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
-    state: {
-      sorting,
-      columnFilters,
-      columnVisibility,
-      rowSelection,
-    },
-  })
-
-  const handleDeleteSelected = () => {
-    const selectedIds = table.getFilteredSelectedRowModel().rows.map(row => row.original.id);
-    const updatedStudents = data.filter(student => !selectedIds.includes(student.id));
-    setData(updatedStudents);
-    localStorage.setItem('studentsData', JSON.stringify(updatedStudents));
-    table.resetRowSelection();
-    toast({
-      title: "Students Deleted",
-      description: `${selectedIds.length} student(s) have been removed.`,
-    });
-  };
-
-  const getColumns = (
+const getColumns = (
     { router, toast, handleDelete, handleStatusChange }: 
     { router: any, toast: any, handleDelete: (id: string) => void, handleStatusChange: (id: string, status: Student["status"]) => void }
   ): ColumnDef<Student>[] => [
@@ -322,6 +220,107 @@ export function StudentTable() {
       },
     },
   ]
+
+export function StudentTable() {
+  const router = useRouter();
+  const { toast } = useToast();
+  const [data, setData] = React.useState<Student[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [sorting, setSorting] = React.useState<SortingState>([])
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    []
+  )
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>({})
+  const [rowSelection, setRowSelection] = React.useState({})
+
+  const loadStudents = React.useCallback(() => {
+    setIsLoading(true);
+    try {
+      if (typeof window !== 'undefined') {
+        const storedStudents = localStorage.getItem('studentsData');
+        if (storedStudents) {
+          setData(JSON.parse(storedStudents));
+        } else {
+          // Initialize with default data if nothing is in localStorage
+          localStorage.setItem('studentsData', JSON.stringify(defaultStudentsData));
+          setData(defaultStudentsData);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to load students from localStorage", error);
+      setData(defaultStudentsData); // Fallback to default
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    loadStudents();
+
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === 'studentsData') {
+        loadStudents();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [loadStudents]);
+
+  const handleDelete = (studentId: string) => {
+    const updatedStudents = data.filter(student => student.id !== studentId);
+    setData(updatedStudents);
+    localStorage.setItem('studentsData', JSON.stringify(updatedStudents));
+    toast({
+      title: "Student Deleted",
+      description: `Student with ID ${studentId} has been removed.`,
+    });
+  };
+  
+  const table = useReactTable({
+    data,
+    columns: getColumns({ router, toast, handleDelete: handleDelete, handleStatusChange: (studentId, newStatus) => {
+        const updatedStudents = data.map(student =>
+            student.id === studentId ? { ...student, status: newStatus } : student
+        );
+        setData(updatedStudents);
+        localStorage.setItem('studentsData', JSON.stringify(updatedStudents));
+        toast({
+            title: "Status Updated",
+            description: `Student ${studentId} has been marked as ${newStatus}.`,
+        });
+    } }),
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    onColumnVisibilityChange: setColumnVisibility,
+    onRowSelectionChange: setRowSelection,
+    state: {
+      sorting,
+      columnFilters,
+      columnVisibility,
+      rowSelection,
+    },
+  })
+
+  const handleDeleteSelected = () => {
+    const selectedIds = table.getFilteredSelectedRowModel().rows.map(row => row.original.id);
+    const updatedStudents = data.filter(student => !selectedIds.includes(student.id));
+    setData(updatedStudents);
+    localStorage.setItem('studentsData', JSON.stringify(updatedStudents));
+    table.resetRowSelection();
+    toast({
+      title: "Students Deleted",
+      description: `${selectedIds.length} student(s) have been removed.`,
+    });
+  };
 
   return (
     <div className="w-full">
@@ -474,4 +473,5 @@ export function StudentTable() {
       </div>
     </div>
   )
-}
+
+    
