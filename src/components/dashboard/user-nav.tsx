@@ -1,6 +1,7 @@
 
 "use client";
 
+import React, { useState, useEffect, useCallback } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,6 +21,37 @@ import { useRouter } from "next/navigation";
 export function UserNav() {
   const router = useRouter();
   const { role } = useCurrentUser();
+  const [avatarUrl, setAvatarUrl] = useState<string>('');
+
+  const getInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('');
+  }
+  
+  const getDefaultAvatarUrl = (role: UserRole) => {
+    const avatarId = `${role}-avatar`;
+    return PlaceHolderImages.find(img => img.id === avatarId)?.imageUrl || '';
+  }
+
+  const loadAvatar = useCallback(() => {
+    if (role) {
+      const storedAvatar = localStorage.getItem(`${role}-avatar-url`);
+      setAvatarUrl(storedAvatar || getDefaultAvatarUrl(role));
+    }
+  }, [role]);
+
+  useEffect(() => {
+    loadAvatar();
+
+    const handleStorageChange = (event: StorageEvent) => {
+        if (event.key === `${role}-avatar-url`) {
+            loadAvatar();
+        }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+        window.removeEventListener('storage', handleStorageChange);
+    }
+  }, [role, loadAvatar]);
 
 
   const handleLogout = async () => {
@@ -30,21 +62,12 @@ export function UserNav() {
 
   const profile = role ? userProfiles[role] : null;
 
-  const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('');
-  }
-  
-  const getAvatarUrl = (role: UserRole) => {
-    const avatarId = `${role}-avatar`;
-    return PlaceHolderImages.find(img => img.id === avatarId)?.imageUrl || '';
-  }
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-9 w-9">
-            {profile && <AvatarImage src={getAvatarUrl(role!)} alt={profile.name} />}
+            {profile && <AvatarImage src={avatarUrl} alt={profile.name} />}
             <AvatarFallback>{profile ? getInitials(profile.name) : 'U'}</AvatarFallback>
           </Avatar>
         </Button>

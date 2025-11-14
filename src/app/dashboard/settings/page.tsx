@@ -1,6 +1,7 @@
 
 "use client"
 
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -25,10 +26,25 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { PlaceHolderImages } from "@/lib/placeholder-images"
 import { Textarea } from "@/components/ui/textarea"
 import type { UserRole } from "@/hooks/use-current-user"
+import { useToast } from "@/hooks/use-toast"
 
 export default function SettingsPage() {
   const { setTheme } = useTheme()
   const { role } = useCurrentUser()
+  const { toast } = useToast();
+  const [avatarUrl, setAvatarUrl] = useState<string>('');
+  const [newAvatarFile, setNewAvatarFile] = useState<File | null>(null);
+
+  useEffect(() => {
+    if (role) {
+      const storedAvatar = localStorage.getItem(`${role}-avatar-url`);
+      if (storedAvatar) {
+        setAvatarUrl(storedAvatar);
+      } else {
+        setAvatarUrl(getAvatarUrl(role));
+      }
+    }
+  }, [role]);
 
   if (!role) {
     return null;
@@ -41,9 +57,34 @@ export default function SettingsPage() {
     return name.split(' ').map(n => n[0]).join('');
   }
   
-  const getAvatarUrl = (role: UserRole) => {
+  function getAvatarUrl(role: UserRole) {
     const avatarId = `${role}-avatar`;
     return PlaceHolderImages.find(img => img.id === avatarId)?.imageUrl || '';
+  }
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files[0]) {
+      const file = event.target.files[0];
+      setNewAvatarFile(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (e.target?.result) {
+          setAvatarUrl(e.target.result as string);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSaveChanges = () => {
+    if (newAvatarFile && avatarUrl.startsWith('data:')) {
+      localStorage.setItem(`${role}-avatar-url`, avatarUrl);
+      window.dispatchEvent(new Event('storage')); // To update UserNav
+    }
+    toast({
+      title: "Settings Saved",
+      description: "Your profile changes have been saved.",
+    });
   }
 
   return (
@@ -70,12 +111,12 @@ export default function SettingsPage() {
             <CardContent className="space-y-6">
               <div className="flex items-center gap-4">
                 <Avatar className="h-20 w-20">
-                  <AvatarImage src={getAvatarUrl(role)} alt={profile.name} />
+                  <AvatarImage src={avatarUrl} alt={profile.name} />
                   <AvatarFallback>{getInitials(profile.name)}</AvatarFallback>
                 </Avatar>
                 <div className="grid gap-2">
                     <Label htmlFor="picture">Profile Picture</Label>
-                    <Input id="picture" type="file" className="max-w-sm" />
+                    <Input id="picture" type="file" className="max-w-sm" onChange={handleFileChange} accept="image/*" />
                     <p className="text-xs text-muted-foreground">Recommended size: 200x200px</p>
                 </div>
               </div>
@@ -101,7 +142,7 @@ export default function SettingsPage() {
                 </div>
             </CardContent>
             <CardFooter>
-              <Button>Save changes</Button>
+              <Button onClick={handleSaveChanges}>Save changes</Button>
             </CardFooter>
           </Card>
         </TabsContent>
