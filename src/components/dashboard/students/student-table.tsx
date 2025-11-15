@@ -342,7 +342,7 @@ export function StudentTable() {
     
     const existingUserIndex = storedCredentials.findIndex((cred: any) => cred.email === student.email);
     if (existingUserIndex > -1) {
-        storedCredentials[existingUserIndex].password = password;
+        storedCredentials[existingUserIndex] = credential;
     } else {
         storedCredentials.push(credential);
     }
@@ -568,4 +568,6 @@ export function StudentTable() {
     </div>
   )
 }
+    
+
     

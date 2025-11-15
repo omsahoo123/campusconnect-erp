@@ -330,7 +330,7 @@ export function StaffTable() {
     
     const existingUserIndex = storedCredentials.findIndex((cred: any) => cred.email === staff.email);
     if (existingUserIndex > -1) {
-        storedCredentials[existingUserIndex].password = password;
+        storedCredentials[existingUserIndex] = credential;
     } else {
         storedCredentials.push(credential);
     }
@@ -556,3 +556,5 @@ export function StaffTable() {
     </div>
   )
 }
+
+    
