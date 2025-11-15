@@ -2,23 +2,10 @@
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Home, Users, Bed, Utensils } from "lucide-react";
-import { Bar, BarChart, CartesianGrid, XAxis, ResponsiveContainer } from "recharts";
-import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from "@/components/ui/chart";
+import { Home, Users, Bed, Utensils, PersonStanding } from "lucide-react";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { defaultHostels, defaultMessData, type Hostel } from "@/lib/hostel";
 import { useToast } from "@/hooks/use-toast";
-
-const chartConfig: ChartConfig = {
-  occupied: {
-    label: "Occupied",
-    color: "hsl(var(--chart-1))",
-  },
-  available: {
-    label: "Available",
-    color: "hsl(var(--chart-2))",
-  },
-};
 
 type MessData = {
     status: string;
@@ -75,36 +62,28 @@ export function HostelDashboard() {
   }, [loadData]);
 
 
-  const { totalRooms, occupiedRooms, totalCapacity, hostelStudentCount } = useMemo(() => {
-    const allRooms = hostels.flatMap(h => h.rooms);
-    const totalCap = allRooms.reduce((acc, room) => acc + room.capacity, 0);
-    const occupiedCount = allRooms.reduce((acc, room) => acc + room.occupants.length, 0);
-    
-    // Get unique student IDs from all rooms across all hostels
-    const studentIds = new Set(allRooms.flatMap(room => room.occupants));
+  const { boysHostelStats, girlsHostelStats } = useMemo(() => {
+    const calculateStats = (gender: 'Male' | 'Female') => {
+        const genderHostels = hostels.filter(h => h.gender === gender);
+        const allRooms = genderHostels.flatMap(h => h.rooms);
+        const totalCapacity = allRooms.reduce((acc, room) => acc + room.capacity, 0);
+        const occupiedCount = allRooms.reduce((acc, room) => acc + room.occupants.length, 0);
+        const studentIds = new Set(allRooms.flatMap(room => room.occupants));
+
+        return {
+            totalRooms: allRooms.length,
+            totalCapacity: totalCapacity,
+            studentCount: studentIds.size,
+            occupancyRate: totalCapacity > 0 ? Math.round((studentIds.size / totalCapacity) * 100) : 0,
+        };
+    }
 
     return { 
-        totalRooms: allRooms.length,
-        occupiedRooms: allRooms.filter(r => r.occupants.length > 0).length,
-        totalCapacity: totalCap,
-        hostelStudentCount: studentIds.size,
+        boysHostelStats: calculateStats('Male'),
+        girlsHostelStats: calculateStats('Female'),
     };
   }, [hostels]);
 
-  const chartData = useMemo(() => {
-    const allRooms = hostels.flatMap(h => h.rooms);
-    const floors = [...new Set(allRooms.map(r => r.floor))].sort((a, b) => a - b);
-    return floors.map(floorNum => {
-        const roomsOnFloor = allRooms.filter(r => r.floor === floorNum);
-        const occupiedCount = roomsOnFloor.reduce((acc, room) => acc + room.occupants.length, 0);
-        const totalCapacityOnFloor = roomsOnFloor.reduce((acc, room) => acc + room.capacity, 0);
-        return {
-            floor: `Floor ${floorNum}`,
-            occupied: occupiedCount,
-            available: totalCapacityOnFloor - occupiedCount,
-        }
-    });
-  }, [hostels]);
 
   return (
     <div className="space-y-6">
@@ -112,47 +91,78 @@ export function HostelDashboard() {
         <h1 className="text-2xl font-bold tracking-tight font-headline">Hostel Dashboard</h1>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Capacity</CardTitle>
-            <Home className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalCapacity}</div>
-            <p className="text-xs text-muted-foreground">{totalRooms} rooms available</p>
+            <CardHeader>
+                <CardTitle>Boys' Hostels</CardTitle>
+                <CardDescription>Occupancy and capacity overview.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-4 sm:grid-cols-3">
+                <div className="flex items-center gap-4">
+                    <Home className="h-6 w-6 text-muted-foreground" />
+                    <div>
+                        <p className="text-sm font-medium">Capacity</p>
+                        <p className="text-2xl font-bold">{boysHostelStats.totalCapacity}</p>
+                    </div>
+                </div>
+                <div className="flex items-center gap-4">
+                    <Bed className="h-6 w-6 text-muted-foreground" />
+                    <div>
+                        <p className="text-sm font-medium">Occupancy</p>
+                        <p className="text-2xl font-bold">{boysHostelStats.occupancyRate}%</p>
+                    </div>
+                </div>
+                <div className="flex items-center gap-4">
+                    <Users className="h-6 w-6 text-muted-foreground" />
+                    <div>
+                        <p className="text-sm font-medium">Students</p>
+                        <p className="text-2xl font-bold">{boysHostelStats.studentCount}</p>
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+
+        <Card>
+            <CardHeader>
+                <CardTitle>Girls' Hostels</CardTitle>
+                <CardDescription>Occupancy and capacity overview.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-4 sm:grid-cols-3">
+                 <div className="flex items-center gap-4">
+                    <Home className="h-6 w-6 text-muted-foreground" />
+                    <div>
+                        <p className="text-sm font-medium">Capacity</p>
+                        <p className="text-2xl font-bold">{girlsHostelStats.totalCapacity}</p>
+                    </div>
+                </div>
+                <div className="flex items-center gap-4">
+                    <Bed className="h-6 w-6 text-muted-foreground" />
+                    <div>
+                        <p className="text-sm font-medium">Occupancy</p>
+                        <p className="text-2xl font-bold">{girlsHostelStats.occupancyRate}%</p>
+                    </div>
+                </div>
+                <div className="flex items-center gap-4">
+                    <Users className="h-6 w-6 text-muted-foreground" />
+                    <div>
+                        <p className="text-sm font-medium">Students</p>
+                        <p className="text-2xl font-bold">{girlsHostelStats.studentCount}</p>
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+        
+        <Card className="md:col-span-2">
+            <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>Mess Management</CardTitle>
+                <Utensils className="h-5 w-5 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+                <div className="text-2xl font-bold">{messData.status}</div>
+                <p className="text-sm text-muted-foreground">Next meal: {messData.nextMeal}</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Occupancy</CardTitle>
-            <Bed className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{hostelStudentCount} / {totalCapacity}</div>
-            <p className="text-xs text-muted-foreground">{totalCapacity > 0 ? (hostelStudentCount / totalCapacity * 100).toFixed(0) : 0}% occupancy rate</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Students</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{hostelStudentCount}</div>
-            <p className="text-xs text-muted-foreground">Currently residing in hostel</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Mess Management</CardTitle>
-            <Utensils className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{messData.status}</div>
-            <p className="text-xs text-muted-foreground">Next meal: {messData.nextMeal}</p>
-          </CardContent>
-        </Card>
+
       </div>
 
     </div>
