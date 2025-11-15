@@ -32,16 +32,6 @@ export const staffData = [
   { id: "TCH01", name: "Ayushman Patra", department: "Computer Science", email: "osahoo225@gmail.com", status: "Active" as const }
 ];
 
-export const feeCollectionData = [
-  { month: "Jan", collected: 4000, pending: 2400 },
-  { month: "Feb", collected: 3000, pending: 1398 },
-  { month: "Mar", collected: 5000, pending: 9800 },
-  { month: "Apr", collected: 2780, pending: 3908 },
-  { month: "May", collected: 1890, pending: 4800 },
-  { month: "Jun", collected: 2390, pending: 3800 },
-  { month: "Jul", collected: 3490, pending: 4300 },
-];
-
 export const studentAttendanceData = [
   { subject: 'Math', total: 20, attended: 18 },
   { subject: 'Physics', total: 20, attended: 19 },
@@ -60,3 +50,4 @@ export const holidays = [
     { date: '2024-07-04', name: 'Independence Day' },
     { date: '2024-09-02', name: 'Labor Day' },
 ];
+

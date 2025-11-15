@@ -1,10 +1,13 @@
+
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, TrendingDown, CircleDollarSign, Wallet } from "lucide-react";
 import { Area, AreaChart, CartesianGrid, XAxis, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from "@/components/ui/chart";
-import { feeCollectionData } from "@/lib/data";
+import { feeCollectionData as defaultFeeData, transactions as defaultTransactions, studentFees as defaultStudentFees } from "@/lib/finance";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { format } from "date-fns";
 
 const chartConfig: ChartConfig = {
     collected: {
@@ -17,7 +20,89 @@ const chartConfig: ChartConfig = {
     },
 };
 
+type Transaction = {
+    id: string;
+    type: 'income' | 'expense';
+    description: string;
+    amount: number;
+    date: string;
+};
+
+type StudentFee = {
+    total: number;
+    paid: number;
+    due: number;
+};
+
+type StudentFees = {
+    [studentId: string]: StudentFee;
+};
+
+
 export function FinanceDashboard() {
+    const [transactions, setTransactions] = useState<Transaction[]>([]);
+    const [studentFees, setStudentFees] = useState<StudentFees>({});
+
+    const loadData = useCallback(() => {
+        try {
+            if (typeof window !== 'undefined') {
+                const storedTransactions = localStorage.getItem('transactions');
+                setTransactions(storedTransactions ? JSON.parse(storedTransactions) : defaultTransactions);
+
+                const storedFees = localStorage.getItem('studentFees');
+                setStudentFees(storedFees ? JSON.parse(storedFees) : defaultStudentFees);
+            }
+        } catch (error) {
+            console.error("Failed to load finance data from localStorage", error);
+        }
+    }, []);
+
+    useEffect(() => {
+        loadData();
+        const handleStorageChange = (event: StorageEvent) => {
+            if (['transactions', 'studentFees'].includes(event.key || '')) {
+                loadData();
+            }
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+        return () => window.removeEventListener('storage', handleStorageChange);
+    }, [loadData]);
+
+
+    const { totalRevenue, totalExpenses, outstandingFees, netProfit } = useMemo(() => {
+        const revenue = transactions
+            .filter(t => t.type === 'income')
+            .reduce((acc, t) => acc + t.amount, 0);
+
+        const expenses = transactions
+            .filter(t => t.type === 'expense')
+            .reduce((acc, t) => acc + t.amount, 0);
+            
+        const outstanding = Object.values(studentFees).reduce((acc, fee) => acc + fee.due, 0);
+
+        return {
+            totalRevenue: revenue,
+            totalExpenses: expenses,
+            outstandingFees: outstanding,
+            netProfit: revenue - expenses,
+        };
+    }, [transactions, studentFees]);
+
+    const formatCurrency = (amount: number) => {
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD',
+        }).format(amount);
+    };
+    
+    const recentTransactions = useMemo(() => {
+        return [...transactions]
+            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+            .slice(0, 4);
+    }, [transactions]);
+
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -31,7 +116,7 @@ export function FinanceDashboard() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$45,231.89</div>
+            <div className="text-2xl font-bold">{formatCurrency(totalRevenue)}</div>
             <p className="text-xs text-muted-foreground">+20.1% from last month</p>
           </CardContent>
         </Card>
@@ -41,7 +126,7 @@ export function FinanceDashboard() {
             <TrendingDown className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$12,142.60</div>
+            <div className="text-2xl font-bold">{formatCurrency(totalExpenses)}</div>
             <p className="text-xs text-muted-foreground">+2% from last month</p>
           </CardContent>
         </Card>
@@ -51,8 +136,8 @@ export function FinanceDashboard() {
             <CircleDollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$8,980.00</div>
-            <p className="text-xs text-muted-foreground">from 52 students</p>
+            <div className="text-2xl font-bold">{formatCurrency(outstandingFees)}</div>
+            <p className="text-xs text-muted-foreground">from all students</p>
           </CardContent>
         </Card>
         <Card>
@@ -61,7 +146,7 @@ export function FinanceDashboard() {
             <Wallet className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$33,089.29</div>
+            <div className="text-2xl font-bold">{formatCurrency(netProfit)}</div>
             <p className="text-xs text-muted-foreground">+15.3% from last month</p>
           </CardContent>
         </Card>
@@ -76,7 +161,7 @@ export function FinanceDashboard() {
           <CardContent className="pl-2">
             <ChartContainer config={chartConfig} className="h-[300px] w-full">
               <ResponsiveContainer>
-                <AreaChart data={feeCollectionData} accessibilityLayer>
+                <AreaChart data={defaultFeeData} accessibilityLayer>
                   <CartesianGrid vertical={false} />
                   <XAxis
                     dataKey="month"
@@ -112,49 +197,26 @@ export function FinanceDashboard() {
             <CardTitle>Recent Transactions</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-             <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-100 dark:bg-green-900/50 rounded-full">
-                    <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
+             {recentTransactions.map(transaction => (
+                <div key={transaction.id} className="flex items-center gap-3">
+                    <div className={`p-2 rounded-full ${transaction.type === 'income' ? 'bg-green-100 dark:bg-green-900/50' : 'bg-red-100 dark:bg-red-900/50'}`}>
+                        {transaction.type === 'income' ? 
+                            <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" /> : 
+                            <TrendingDown className="h-4 w-4 text-red-600 dark:text-red-400" />}
+                    </div>
+                    <div className="flex-1">
+                        <p className="text-sm font-medium">{transaction.description}</p>
+                        <p className="text-xs text-muted-foreground">{format(new Date(transaction.date), 'dd MMM yyyy')}</p>
+                    </div>
+                    <p className={`text-sm font-medium ${transaction.type === 'income' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                        {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
+                    </p>
                 </div>
-                <div className="flex-1">
-                    <p className="text-sm font-medium">Tuition Fee from STU001</p>
-                    <p className="text-xs text-muted-foreground">2 hours ago</p>
-                </div>
-                <p className="text-sm font-medium text-green-600 dark:text-green-400">+$1,500.00</p>
-            </div>
-             <div className="flex items-center gap-3">
-                <div className="p-2 bg-red-100 dark:bg-red-900/50 rounded-full">
-                    <TrendingDown className="h-4 w-4 text-red-600 dark:text-red-400" />
-                </div>
-                <div className="flex-1">
-                    <p className="text-sm font-medium">Stationery Supplies</p>
-                    <p className="text-xs text-muted-foreground">8 hours ago</p>
-                </div>
-                <p className="text-sm font-medium text-red-600 dark:text-red-400">-$45.50</p>
-            </div>
-             <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-100 dark:bg-green-900/50 rounded-full">
-                    <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
-                </div>
-                <div className="flex-1">
-                    <p className="text-sm font-medium">Hostel Fee from STU002</p>
-                    <p className="text-xs text-muted-foreground">1 day ago</p>
-                </div>
-                <p className="text-sm font-medium text-green-600 dark:text-green-400">+$800.00</p>
-            </div>
-            <div className="flex items-center gap-3">
-                <div className="p-2 bg-red-100 dark:bg-red-900/50 rounded-full">
-                    <TrendingDown className="h-4 w-4 text-red-600 dark:text-red-400" />
-                </div>
-                <div className="flex-1">
-                    <p className="text-sm font-medium">Internet Bill</p>
-                    <p className="text-xs text-muted-foreground">2 days ago</p>
-                </div>
-                <p className="text-sm font-medium text-red-600 dark:text-red-400">-$250.00</p>
-            </div>
+             ))}
           </CardContent>
         </Card>
       </div>
     </div>
   );
 }
+
