@@ -167,6 +167,7 @@ export function ApplicationsDashboard() {
         description: `${app.name}'s application has been approved and they have been added to the staff list.`,
       });
     }
+     window.dispatchEvent(new Event('storage'));
   };
 
   const handleReject = (type: 'student' | 'teacher', id: string, name: string) => {
@@ -184,6 +185,7 @@ export function ApplicationsDashboard() {
       title: "Application Rejected",
       description: `${name}'s application has been rejected.`,
     });
+    window.dispatchEvent(new Event('storage'));
   };
 
   return (
@@ -334,4 +336,6 @@ export function ApplicationsDashboard() {
     </div>
   );
 }
+    
+
     

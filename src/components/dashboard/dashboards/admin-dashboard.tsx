@@ -2,7 +2,7 @@
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, GraduationCap, Briefcase, Activity } from "lucide-react";
+import { Users, GraduationCap, Briefcase, Activity, FileText } from "lucide-react";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from "@/components/ui/chart";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { useState, useEffect, useCallback, useMemo } from "react";
@@ -17,6 +17,11 @@ const chartConfig: ChartConfig = {
 };
 
 interface StudentApplication {
+  id: string;
+  name: string;
+  status: 'Pending';
+}
+interface TeacherApplication {
   id: string;
   name: string;
   status: 'Pending';
@@ -51,6 +56,7 @@ export function AdminDashboard() {
   const [studentCount, setStudentCount] = useState(0);
   const [staffCount, setStaffCount] = useState(0);
   const [newAdmissionsCount, setNewAdmissionsCount] = useState(0);
+  const [teacherAppsCount, setTeacherAppsCount] = useState(0);
   const [activityLog, setActivityLog] = useState<ActivityLogItem[]>([]);
 
   const loadData = useCallback(() => {
@@ -67,6 +73,10 @@ export function AdminDashboard() {
         const storedStudentApps = localStorage.getItem('studentApplications');
         const studentApps: StudentApplication[] = storedStudentApps ? JSON.parse(storedStudentApps) : [];
         setNewAdmissionsCount(studentApps.filter(app => app.status === 'Pending').length);
+        
+        const storedTeacherApps = localStorage.getItem('teacherApplications');
+        const teacherApps: TeacherApplication[] = storedTeacherApps ? JSON.parse(storedTeacherApps) : [];
+        setTeacherAppsCount(teacherApps.filter(app => app.status === 'Pending').length);
 
         const storedActivityLog = localStorage.getItem('activityLog');
         const log = storedActivityLog ? JSON.parse(storedActivityLog) : [{ type: 'SYSTEM_START', payload: { name: 'System' }, timestamp: new Date().toISOString() }];
@@ -78,6 +88,7 @@ export function AdminDashboard() {
       setStudentCount(defaultStudentsData.length);
       setStaffCount(defaultStaffData.length);
       setNewAdmissionsCount(0);
+      setTeacherAppsCount(0);
       setActivityLog([]);
     }
   }, []);
@@ -86,7 +97,7 @@ export function AdminDashboard() {
     loadData();
 
     const handleStorageChange = (event: StorageEvent) => {
-      if (['studentsData', 'staffData', 'studentApplications', 'activityLog'].includes(event.key || '')) {
+      if (['studentsData', 'staffData', 'studentApplications', 'teacherApplications', 'activityLog'].includes(event.key || '')) {
         loadData();
       }
     };
@@ -150,28 +161,22 @@ export function AdminDashboard() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">New Admissions</CardTitle>
+            <CardTitle className="text-sm font-medium">Pending Student Apps</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">+{newAdmissionsCount}</div>
-            <p className="text-xs text-muted-foreground">Pending applications</p>
+            <p className="text-xs text-muted-foreground">New admissions</p>
           </CardContent>
         </Card>
-         <Card>
+        <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Server Status</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Pending Teacher Apps</CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold flex items-center gap-2">
-                <span className="relative flex h-3 w-3">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
-                </span>
-                Online
-            </div>
-            <p className="text-xs text-muted-foreground">All systems operational</p>
+            <div className="text-2xl font-bold">+{teacherAppsCount}</div>
+            <p className="text-xs text-muted-foreground">New job applications</p>
           </CardContent>
         </Card>
       </div>
@@ -194,7 +199,7 @@ export function AdminDashboard() {
                     axisLine={false}
                     tickFormatter={(value) => value.slice(0, 3)}
                   />
-                  <YAxis />
+                  <YAxis allowDecimals={false} />
                   <ChartTooltip content={<ChartTooltipContent />} />
                   <Bar dataKey="admissions" fill="var(--color-admissions)" radius={4} />
                 </BarChart>
@@ -208,15 +213,17 @@ export function AdminDashboard() {
                 <CardDescription>A log of recent system-wide events.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-                {activityLog.slice(0, 4).map((item, index) => (
+                {activityLog.slice(0, 5).map((item, index) => (
                      <div key={index} className="flex items-center gap-4">
                         <div className="p-2 bg-muted rounded-full">
                             {getActivityIcon(item.type)}
                         </div>
-                        <p className="text-sm" dangerouslySetInnerHTML={{ __html: getActivityMessage(item) }}></p>
-                        <p className="text-sm text-muted-foreground ml-auto whitespace-nowrap">
-                            {formatDistanceToNow(new Date(item.timestamp), { addSuffix: true })}
-                        </p>
+                        <div className="flex-1">
+                            <p className="text-sm" dangerouslySetInnerHTML={{ __html: getActivityMessage(item) }}></p>
+                             <p className="text-xs text-muted-foreground">
+                                {formatDistanceToNow(new Date(item.timestamp), { addSuffix: true })}
+                            </p>
+                        </div>
                     </div>
                 ))}
             </CardContent>
@@ -225,3 +232,5 @@ export function AdminDashboard() {
     </div>
   );
 }
+
+    
