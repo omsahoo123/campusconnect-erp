@@ -37,7 +37,23 @@ export default function HostelStudentsPage() {
   const loadData = useCallback(() => {
     const storedHostels = localStorage.getItem('hostelsData')
     const storedStudents = localStorage.getItem('studentsData')
-    setHostels(storedHostels ? JSON.parse(storedHostels) : defaultHostels)
+    
+    let currentHostels: Hostel[] = storedHostels ? JSON.parse(storedHostels) : defaultHostels;
+
+    // One-time data migration/check
+    const isOmSahooAssigned = currentHostels.some(h => h.rooms.some(r => r.occupants.includes("STU001")));
+    if (!isOmSahooAssigned) {
+        const boysHostel = currentHostels.find(h => h.gender === 'Male');
+        if (boysHostel) {
+            const firstRoom = boysHostel.rooms[0];
+            if (firstRoom && firstRoom.capacity > firstRoom.occupants.length) {
+                firstRoom.occupants.push("STU001");
+                localStorage.setItem('hostelsData', JSON.stringify(currentHostels));
+            }
+        }
+    }
+    
+    setHostels(currentHostels)
     setAllStudents(storedStudents ? JSON.parse(storedStudents) : defaultStudentsData)
   }, [])
 
