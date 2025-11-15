@@ -22,6 +22,11 @@ export const userProfiles: Record<UserRole, { name: string; email: string; avata
     email: "finance@campus.edu",
     avatar: "/avatars/04.png",
   },
+  hostel: {
+    name: "Henry Cavill",
+    email: "hostel@campus.edu",
+    avatar: "/avatars/05.png",
+  }
 };
 
 export const studentsData = [
@@ -50,4 +55,3 @@ export const holidays = [
     { date: '2024-07-04', name: 'Independence Day' },
     { date: '2024-09-02', name: 'Labor Day' },
 ];
-

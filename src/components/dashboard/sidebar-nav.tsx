@@ -10,7 +10,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, Users, GraduationCap, Briefcase, Banknote, BookOpen, Settings, FileText, CalendarCheck, CalendarDays } from "lucide-react";
+import { LayoutDashboard, Users, GraduationCap, Briefcase, Banknote, BookOpen, Settings, FileText, CalendarCheck, CalendarDays, Home } from "lucide-react";
 import React from "react";
 
 const navItems = {
@@ -43,6 +43,13 @@ const navItems = {
     { href: "/dashboard/fee-collection", icon: <Banknote />, label: "Fee Collection", tooltip: "Fee Collection" },
     { href: "/dashboard/expenses", icon: <Users />, label: "Expenses", tooltip: "Expenses" },
     { href: "/dashboard/reports", icon: <GraduationCap />, label: "Reports", tooltip: "Reports" },
+    { href: "/dashboard/settings", icon: <Settings />, label: "Settings", tooltip: "Settings" },
+  ],
+  hostel: [
+    { href: "/dashboard", icon: <LayoutDashboard />, label: "Dashboard", tooltip: "Dashboard" },
+    { href: "/dashboard/rooms", icon: <Home />, label: "Rooms", tooltip: "Rooms" },
+    { href: "/dashboard/hostel-students", icon: <Users />, label: "Students", tooltip: "Students" },
+    { href: "/dashboard/mess", icon: <GraduationCap />, label: "Mess", tooltip: "Mess" },
     { href: "/dashboard/settings", icon: <Settings />, label: "Settings", tooltip: "Settings" },
   ],
 };

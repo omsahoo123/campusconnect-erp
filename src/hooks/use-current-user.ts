@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 
-export type UserRole = "admin" | "teacher" | "student" | "finance";
+export type UserRole = "admin" | "teacher" | "student" | "finance" | "hostel";
 
 const isBrowser = typeof window !== "undefined";
 

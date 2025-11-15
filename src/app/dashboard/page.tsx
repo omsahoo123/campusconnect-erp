@@ -2,6 +2,7 @@
 
 import { AdminDashboard } from "@/components/dashboard/dashboards/admin-dashboard";
 import { FinanceDashboard } from "@/components/dashboard/dashboards/finance-dashboard";
+import { HostelDashboard } from "@/components/dashboard/dashboards/hostel-dashboard";
 import { StudentDashboard } from "@/components/dashboard/dashboards/student-dashboard";
 import { TeacherDashboard } from "@/components/dashboard/dashboards/teacher-dashboard";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -47,6 +48,8 @@ export default function DashboardPage() {
       return <StudentDashboard />;
     case 'finance':
       return <FinanceDashboard />;
+    case 'hostel':
+      return <HostelDashboard />;
     default:
       return null;
   }

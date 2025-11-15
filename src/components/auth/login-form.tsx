@@ -117,6 +117,7 @@ export function LoginForm() {
                       <SelectItem value="teacher">Teacher</SelectItem>
                       <SelectItem value="student">Student</SelectItem>
                       <SelectItem value="finance">Finance</SelectItem>
+                      <SelectItem value="hostel">Hostel</SelectItem>
                   </SelectContent>
               </Select>
           </div>
