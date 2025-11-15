@@ -32,14 +32,15 @@ export function LoginForm() {
   const router = useRouter();
   const { toast } = useToast();
   const [selectedRole, setSelectedRole] = useState<UserRole>("admin");
-  const [email, setEmail] = useState(userProfiles.admin.email);
-  const [password, setPassword] = useState("password");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleRoleChange = (role: UserRole) => {
     setSelectedRole(role);
-    setEmail(userProfiles[role].email);
-    setPassword("password");
+    // User wants to type email and password manually
+    // setEmail(userProfiles[role].email);
+    // setPassword("password");
   };
 
   const handleLogin = async (e: React.FormEvent) => {
