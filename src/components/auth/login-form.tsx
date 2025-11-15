@@ -39,6 +39,7 @@ export function LoginForm() {
   const handleRoleChange = (role: UserRole) => {
     setSelectedRole(role);
     setEmail(userProfiles[role].email);
+    setPassword("password");
   };
 
   const handleLogin = async (e: React.FormEvent) => {
