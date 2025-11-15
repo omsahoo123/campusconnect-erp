@@ -24,9 +24,16 @@ const chartConfig: ChartConfig = {
     },
 };
 
+interface StudentApplication {
+  id: string;
+  name: string;
+  status: 'Pending';
+}
+
 export function AdminDashboard() {
   const [studentCount, setStudentCount] = useState(0);
   const [staffCount, setStaffCount] = useState(0);
+  const [newAdmissionsCount, setNewAdmissionsCount] = useState(0);
 
   const loadData = useCallback(() => {
     try {
@@ -38,11 +45,16 @@ export function AdminDashboard() {
         const storedStaff = localStorage.getItem('staffData');
         const staff = storedStaff ? JSON.parse(storedStaff) : defaultStaffData;
         setStaffCount(staff.length);
+        
+        const storedStudentApps = localStorage.getItem('studentApplications');
+        const studentApps: StudentApplication[] = storedStudentApps ? JSON.parse(storedStudentApps) : [];
+        setNewAdmissionsCount(studentApps.filter(app => app.status === 'Pending').length);
       }
     } catch (error) {
       console.error("Failed to load data from localStorage", error);
       setStudentCount(defaultStudentsData.length);
       setStaffCount(defaultStaffData.length);
+      setNewAdmissionsCount(0);
     }
   }, []);
 
@@ -50,7 +62,7 @@ export function AdminDashboard() {
     loadData();
 
     const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === 'studentsData' || event.key === 'staffData') {
+      if (event.key === 'studentsData' || event.key === 'staffData' || event.key === 'studentApplications') {
         loadData();
       }
     };
@@ -96,8 +108,8 @@ export function AdminDashboard() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+214</div>
-            <p className="text-xs text-muted-foreground">in the last 30 days</p>
+            <div className="text-2xl font-bold">+{newAdmissionsCount}</div>
+            <p className="text-xs text-muted-foreground">Pending applications</p>
           </CardContent>
         </Card>
          <Card>
