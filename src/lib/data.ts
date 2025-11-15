@@ -1,6 +1,25 @@
 
 import type { UserRole } from "@/hooks/use-current-user";
 
+export type Student = {
+  id: string;
+  name: string;
+  gender: "male" | "female" | "other";
+  email: string;
+  phone: string;
+  joinDate: string;
+  status: "Active" | "Inactive" | "Suspended";
+};
+
+export type Staff = {
+  id: string;
+  name: string;
+  department: string;
+  email: string;
+  status: "Active" | "On Leave" | "Inactive";
+};
+
+
 export const userProfiles: Record<UserRole, { name: string; email: string; avatar: string }> = {
   admin: {
     name: "Admin User",
@@ -29,11 +48,15 @@ export const userProfiles: Record<UserRole, { name: string; email: string; avata
   }
 };
 
-export const studentsData = [
-  { id: "STU001", name: "Om Sahoo", gender: "male", email: "osahoo9178@gmail.com", phone: "(123) 456-7890", joinDate: "2023-01-15", status: "Active" as const }
+export const studentsData: Student[] = [
+  { id: "STU001", name: "Om Sahoo", gender: "male", email: "osahoo9178@gmail.com", phone: "(123) 456-7890", joinDate: "2023-01-15", status: "Active" as const },
+  { id: "STU002", name: "Alice Johnson", gender: "female", email: "alice@example.com", phone: "(123) 555-7891", joinDate: "2023-02-20", status: "Active" as const },
+  { id: "STU003", name: "Bob Williams", gender: "male", email: "bob@example.com", phone: "(123) 555-7892", joinDate: "2023-03-10", status: "Active" as const },
+  { id: "STU004", name: "Charlie Brown", gender: "male", email: "charlie@example.com", phone: "(123) 555-7893", joinDate: "2023-01-18", status: "Active" as const },
+  { id: "STU005", name: "Diana Prince", gender: "female", email: "diana@example.com", phone: "(123) 555-7894", joinDate: "2023-02-25", status: "Inactive" as const }
 ];
 
-export const staffData = [
+export const staffData: Staff[] = [
   { id: "TCH01", name: "Ayushman Patra", department: "Computer Science", email: "osahoo225@gmail.com", status: "Active" as const },
   { id: "TCH02", name: "Emily Vance", department: "Statistics", email: "e.vance@campus.edu", status: "Active" as const }
 ];
