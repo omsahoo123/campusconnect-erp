@@ -37,11 +37,7 @@ export const userProfiles: Record<UserRole, { name: string; email: string; avata
 
 export const studentsData: Student[] = [
   { id: "STU001", name: "Om Sahoo", gender: "male", email: "osahoo9178@gmail.com", phone: "(123) 456-7890", joinDate: "2023-01-15", status: "Active" as const },
-  { id: "STU002", name: "Alice Johnson", gender: "female", email: "alice@example.com", phone: "(123) 555-7891", joinDate: "2023-02-20", status: "Active" as const },
-  { id: "STU003", name: "Bob Williams", gender: "male", email: "bob@example.com", phone: "(123) 555-7892", joinDate: "2023-03-10", status: "Active" as const },
-  { id: "STU004", name: "Charlie Brown", gender: "male", email: "charlie@example.com", phone: "(123) 555-7893", joinDate: "2023-01-18", status: "Active" as const },
-  { id: "STU005", name: "Diana Prince", gender: "female", email: "diana@example.com", phone: "(123) 555-7894", joinDate: "2023-02-25", status: "Inactive" as const },
-  { id: "STU006", name: "Pramila", gender: "female", email: "pramila@example.com", phone: "(123) 555-7895", joinDate: "2023-03-28", status: "Active" as const }
+  { id: "STU002", name: "Pramila", gender: "female", email: "pramila@example.com", phone: "(123) 555-7895", joinDate: "2023-03-28", status: "Active" as const }
 ];
 
 export const staffData: Staff[] = [

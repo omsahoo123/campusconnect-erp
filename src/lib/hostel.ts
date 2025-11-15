@@ -30,7 +30,7 @@ export const defaultHostels: Hostel[] = [
     name: "St. Teresa Hostel",
     gender: "Female",
     rooms: [
-      { id: 'A-101', floor: 1, capacity: 2, occupants: ["STU006"] },
+      { id: 'A-101', floor: 1, capacity: 2, occupants: ["STU002"] },
       { id: 'A-102', floor: 1, capacity: 2, occupants: [] },
       { id: 'B-201', floor: 2, capacity: 2, occupants: [] },
     ]
