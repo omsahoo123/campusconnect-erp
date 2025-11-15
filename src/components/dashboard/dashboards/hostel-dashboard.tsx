@@ -6,8 +6,9 @@ import { Home, Users, Bed, Utensils } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, XAxis, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from "@/components/ui/chart";
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { defaultRoomStatusData, defaultHostelStudents, defaultMessData } from "@/lib/hostel";
+import { defaultRooms, defaultHostelStudents, defaultMessData, type Room } from "@/lib/hostel";
 import { useToast } from "@/hooks/use-toast";
+import { studentsData as allStudentsData } from "@/lib/data";
 
 const chartConfig: ChartConfig = {
   occupied: {
@@ -20,31 +21,21 @@ const chartConfig: ChartConfig = {
   },
 };
 
-type RoomStatus = {
-    floor: string;
-    occupied: number;
-    total: number;
-}
-
 type MessData = {
     status: string;
     nextMeal: string;
 }
 
 export function HostelDashboard() {
-  const [roomStatus, setRoomStatus] = useState<RoomStatus[]>([]);
-  const [hostelStudentCount, setHostelStudentCount] = useState(0);
+  const [rooms, setRooms] = useState<Room[]>([]);
   const [messData, setMessData] = useState<MessData>({ status: 'Inactive', nextMeal: 'N/A' });
   const { toast } = useToast();
 
   const loadData = useCallback(() => {
     try {
       if (typeof window !== 'undefined') {
-        const storedRoomStatus = localStorage.getItem('hostelRoomStatus');
-        setRoomStatus(storedRoomStatus ? JSON.parse(storedRoomStatus) : defaultRoomStatusData);
-        
-        const storedHostelStudents = localStorage.getItem('hostelStudents');
-        setHostelStudentCount(storedHostelStudents ? JSON.parse(storedHostelStudents).length : defaultHostelStudents.length);
+        const storedRooms = localStorage.getItem('hostelRooms');
+        setRooms(storedRooms ? JSON.parse(storedRooms) : defaultRooms);
         
         const storedMessData = localStorage.getItem('hostelMessData');
         setMessData(storedMessData ? JSON.parse(storedMessData) : defaultMessData);
@@ -64,11 +55,8 @@ export function HostelDashboard() {
     loadData();
 
     // Initialize if not present
-    if (!localStorage.getItem('hostelRoomStatus')) {
-        localStorage.setItem('hostelRoomStatus', JSON.stringify(defaultRoomStatusData));
-    }
-    if (!localStorage.getItem('hostelStudents')) {
-        localStorage.setItem('hostelStudents', JSON.stringify(defaultHostelStudents));
+    if (!localStorage.getItem('hostelRooms')) {
+        localStorage.setItem('hostelRooms', JSON.stringify(defaultRooms));
     }
     if (!localStorage.getItem('hostelMessData')) {
         localStorage.setItem('hostelMessData', JSON.stringify(defaultMessData));
@@ -76,7 +64,7 @@ export function HostelDashboard() {
 
 
     const handleStorageChange = (event: StorageEvent) => {
-      if (['hostelRoomStatus', 'hostelStudents', 'hostelMessData'].includes(event.key || '')) {
+      if (['hostelRooms', 'hostelMessData'].includes(event.key || '')) {
         loadData();
       }
     };
@@ -88,18 +76,34 @@ export function HostelDashboard() {
   }, [loadData]);
 
 
-  const { totalRooms, occupiedRooms } = useMemo(() => {
-    const total = roomStatus.reduce((acc, floor) => acc + floor.total, 0);
-    const occupied = roomStatus.reduce((acc, floor) => acc + floor.occupied, 0);
-    return { totalRooms: total, occupiedRooms: occupied };
-  }, [roomStatus]);
+  const { totalRooms, occupiedRooms, totalCapacity, hostelStudentCount } = useMemo(() => {
+    const totalCap = rooms.reduce((acc, room) => acc + room.capacity, 0);
+    const occupiedCount = rooms.reduce((acc, room) => acc + room.occupants.length, 0);
+    
+    // Get unique student IDs from all rooms
+    const studentIds = new Set(rooms.flatMap(room => room.occupants));
+
+    return { 
+        totalRooms: rooms.length,
+        occupiedRooms: rooms.filter(r => r.occupants.length > 0).length,
+        totalCapacity: totalCap,
+        hostelStudentCount: studentIds.size,
+    };
+  }, [rooms]);
 
   const chartData = useMemo(() => {
-    return roomStatus.map(floor => ({
-        ...floor,
-        available: floor.total - floor.occupied
-    }));
-  }, [roomStatus]);
+    const floors = [...new Set(rooms.map(r => r.floor))];
+    return floors.map(floorNum => {
+        const roomsOnFloor = rooms.filter(r => r.floor === floorNum);
+        const occupiedCount = roomsOnFloor.reduce((acc, room) => acc + room.occupants.length, 0);
+        const totalCapacityOnFloor = roomsOnFloor.reduce((acc, room) => acc + room.capacity, 0);
+        return {
+            floor: `Floor ${floorNum}`,
+            occupied: occupiedCount,
+            available: totalCapacityOnFloor - occupiedCount,
+        }
+    });
+  }, [rooms]);
 
   return (
     <div className="space-y-6">
@@ -110,22 +114,22 @@ export function HostelDashboard() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Rooms</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Capacity</CardTitle>
             <Home className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalRooms}</div>
-            <p className="text-xs text-muted-foreground">Across all floors</p>
+            <div className="text-2xl font-bold">{totalCapacity}</div>
+            <p className="text-xs text-muted-foreground">{totalRooms} rooms available</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Occupied Rooms</CardTitle>
+            <CardTitle className="text-sm font-medium">Occupancy</CardTitle>
             <Bed className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{occupiedRooms}</div>
-            <p className="text-xs text-muted-foreground">{totalRooms > 0 ? (occupiedRooms / totalRooms * 100).toFixed(0) : 0}% occupancy rate</p>
+            <div className="text-2xl font-bold">{hostelStudentCount} / {totalCapacity}</div>
+            <p className="text-xs text-muted-foreground">{totalCapacity > 0 ? (hostelStudentCount / totalCapacity * 100).toFixed(0) : 0}% occupancy rate</p>
           </CardContent>
         </Card>
         <Card>
@@ -152,8 +156,8 @@ export function HostelDashboard() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Room Occupancy by Floor</CardTitle>
-          <CardDescription>A breakdown of room status across different floors.</CardDescription>
+          <CardTitle>Bed Occupancy by Floor</CardTitle>
+          <CardDescription>A breakdown of bed status across different floors.</CardDescription>
         </CardHeader>
         <CardContent>
           <ChartContainer config={chartConfig} className="h-[300px] w-full">

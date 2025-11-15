@@ -1,12 +1,29 @@
-export const defaultRoomStatusData = [
-  { floor: "Floor 1", occupied: 45, total: 60 },
-  { floor: "Floor 2", occupied: 30, total: 60 },
-  { floor: "Floor 3", occupied: 55, total: 60 },
-  { floor: "Floor 4", occupied: 25, total: 60 },
+
+export type Room = {
+  id: string;
+  floor: number;
+  capacity: number;
+  occupants: string[]; // student IDs
+};
+
+// Simplified default rooms for demonstration
+export const defaultRooms: Room[] = [
+  { id: 'A-101', floor: 1, capacity: 2, occupants: ['STU001'] },
+  { id: 'A-102', floor: 1, capacity: 2, occupants: [] },
+  { id: 'A-103', floor: 1, capacity: 2, occupants: [] },
+  { id: 'B-201', floor: 2, capacity: 2, occupants: [] },
+  { id: 'B-202', floor: 2, capacity: 2, occupants: [] },
+  { id: 'C-301', floor: 3, capacity: 3, occupants: [] },
 ];
 
-export const defaultHostelStudents = [
-    "STU001" // Om Sahoo
+// This is now derived from defaultRooms occupants
+export const defaultHostelStudents: string[] = ['STU001'];
+
+// This will now be calculated from the rooms data, but we can keep it for other components if needed.
+export const defaultRoomStatusData = [
+  { floor: "Floor 1", occupied: 1, total: 6 }, // Based on 3 rooms of 2 capacity
+  { floor: "Floor 2", occupied: 0, total: 4 }, // Based on 2 rooms of 2 capacity
+  { floor: "Floor 3", occupied: 0, total: 3 }, // Based on 1 room of 3 capacity
 ];
 
 export const defaultMessData = {
