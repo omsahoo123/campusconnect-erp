@@ -155,25 +155,6 @@ export function HostelDashboard() {
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Bed Occupancy by Floor</CardTitle>
-          <CardDescription>A breakdown of bed status across different floors.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ChartContainer config={chartConfig} className="h-[300px] w-full">
-            <ResponsiveContainer>
-              <BarChart data={chartData} accessibilityLayer>
-                <CartesianGrid vertical={false} />
-                <XAxis dataKey="floor" tickLine={false} tickMargin={10} axisLine={false} />
-                <ChartTooltip content={<ChartTooltipContent indicator="dot" />} />
-                <Bar dataKey="occupied" fill="var(--color-occupied)" radius={4} stackId="a" />
-                <Bar dataKey="available" fill="var(--color-available)" radius={4} stackId="a" />
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartContainer>
-        </CardContent>
-      </Card>
     </div>
   );
 }
