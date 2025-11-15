@@ -1,9 +1,10 @@
 
+
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { teacherScheduleData as defaultTeacherScheduleData } from "@/lib/data";
+import { teacherScheduleData as defaultTeacherScheduleData, studentsData, staffData } from "@/lib/data";
 import { type Student } from "@/components/dashboard/students/student-table";
 import { BookOpen, Users, Edit, Clock, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { studentsData as defaultStudentsData } from "@/lib/data";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 type Course = {
     class: string;
@@ -35,7 +37,68 @@ type Enrollment = {
     [courseName: string]: string[]; // student IDs
 }
 
-export default function CoursesPage() {
+const StudentCoursesPage = () => {
+    const [enrolledCourses, setEnrolledCourses] = useState<Course[]>([]);
+    const [allCourses] = useState<Course[]>(defaultTeacherScheduleData);
+
+    useEffect(() => {
+        const studentProfile = studentsData.find(s => s.email === 'student@campus.edu');
+        if (studentProfile) {
+            const studentId = studentProfile.id;
+            const storedEnrollments = localStorage.getItem('courseEnrollments');
+            if (storedEnrollments) {
+                const enrollments: Enrollment = JSON.parse(storedEnrollments);
+                const coursesForStudent = allCourses.filter(course => 
+                    enrollments[course.class] && enrollments[course.class].includes(studentId)
+                );
+                setEnrolledCourses(coursesForStudent);
+            }
+        }
+    }, [allCourses]);
+
+    const getTeacherForCourse = (courseName: string) => {
+        // This is a mock; in a real app this would be a proper lookup
+        if (courseName.includes('Calculus') || courseName.includes('Algebra')) {
+            return staffData.find(s => s.name.includes("Carter"))?.name || 'Unknown';
+        }
+        if (courseName.includes('Statistics')) {
+             return staffData.find(s => s.name.includes("Vance"))?.name || 'Unknown';
+        }
+        return 'N/A';
+    }
+
+
+    return (
+        <div className="space-y-6">
+            <div>
+                <h1 className="text-2xl font-bold tracking-tight">My Courses</h1>
+                <p className="text-muted-foreground">Here are the courses you are enrolled in this semester.</p>
+            </div>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {enrolledCourses.map((course, index) => (
+                    <Card key={index} className="flex flex-col">
+                        <CardHeader>
+                            <CardTitle className="text-xl">{course.class}</CardTitle>
+                            <CardDescription>Taught by {getTeacherForCourse(course.class)}</CardDescription>
+                        </CardHeader>
+                        <CardContent className="flex-grow space-y-2">
+                             <div className="flex items-center text-sm text-muted-foreground">
+                                <Users className="h-4 w-4 mr-2" />
+                                <span>Location: {course.location}</span>
+                            </div>
+                            <div className="flex items-center text-sm text-muted-foreground">
+                                <Clock className="h-4 w-4 mr-2" />
+                                <span>Time: {course.time}</span>
+                            </div>
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+const TeacherCoursesPage = () => {
     const { toast } = useToast();
     const [teacherScheduleData, setTeacherScheduleData] = useState<Course[]>(defaultTeacherScheduleData);
     const [enrollments, setEnrollments] = useState<Enrollment>({});
@@ -343,4 +406,23 @@ export default function CoursesPage() {
     );
 }
 
-    
+export default function CoursesPage() {
+    const { role } = useCurrentUser();
+
+    if (role === 'student') {
+        return <StudentCoursesPage />;
+    }
+
+    if (role === 'teacher') {
+        return <TeacherCoursesPage />;
+    }
+
+    return (
+        <div className="space-y-6">
+            <div>
+                <h1 className="text-2xl font-bold tracking-tight">Courses</h1>
+                <p className="text-muted-foreground">Course information is not available for your role.</p>
+            </div>
+        </div>
+    )
+}

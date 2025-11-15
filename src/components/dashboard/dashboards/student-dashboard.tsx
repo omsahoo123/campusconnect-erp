@@ -1,9 +1,39 @@
+
+"use client";
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookOpen, CalendarCheck, Clock, CircleDollarSign, CheckCircle, AlertCircle } from "lucide-react";
+import { BookOpen, CalendarCheck, Clock, CircleDollarSign, CheckCircle } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { studentAttendanceData } from "@/lib/data";
+import { useEffect, useState } from "react";
+import { useCurrentUser } from "@/hooks/use-current-user";
+import { studentsData } from "@/lib/data";
+
+type Enrollment = {
+    [courseName: string]: string[]; // student IDs
+}
 
 export function StudentDashboard() {
+    const { role } = useCurrentUser();
+    const [enrolledCoursesCount, setEnrolledCoursesCount] = useState(0);
+
+    useEffect(() => {
+        if (role === 'student') {
+            const studentProfile = studentsData.find(s => s.email === 'student@campus.edu');
+            if (studentProfile) {
+                const studentId = studentProfile.id;
+                const storedEnrollments = localStorage.getItem('courseEnrollments');
+                if (storedEnrollments) {
+                    const enrollments: Enrollment = JSON.parse(storedEnrollments);
+                    const count = Object.keys(enrollments).filter(courseName => 
+                        enrollments[courseName].includes(studentId)
+                    ).length;
+                    setEnrolledCoursesCount(count);
+                }
+            }
+        }
+    }, [role]);
+
     const overallAttendance = studentAttendanceData.reduce((acc, curr) => acc + curr.attended, 0) / studentAttendanceData.reduce((acc, curr) => acc + curr.total, 0) * 100;
 
   return (
@@ -19,7 +49,7 @@ export function StudentDashboard() {
             <BookOpen className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">5</div>
+            <div className="text-2xl font-bold">{enrolledCoursesCount}</div>
             <p className="text-xs text-muted-foreground">for Spring 2024</p>
           </CardContent>
         </Card>
