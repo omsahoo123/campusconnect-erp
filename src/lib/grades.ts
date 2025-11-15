@@ -1,4 +1,5 @@
 
+
 export type StudentGrade = {
   course: string;
   grade: string;
@@ -9,12 +10,13 @@ export type StudentGradesData = {
   [studentId: string]: StudentGrade[];
 };
 
+// This data is now just the default. The app will use localStorage.
 export const studentGradesData: StudentGradesData = {
   // Grades for Alex Johnson (student@campus.edu)
   "STU009": [
-    { course: "Calculus I", grade: "B+", attendance: 90 },
-    { course: "Linear Algebra", grade: "A-", attendance: 95 },
-    { course: "Advanced Statistics", grade: "C+", attendance: 85 },
+    { course: "Calculus I", grade: "N/A", attendance: 100 },
+    { course: "Linear Algebra", grade: "N/A", attendance: 100 },
+    { course: "Advanced Statistics", grade: "N/A", attendance: 100 },
   ],
   "STU001": [
     { course: "Calculus I", grade: "A+", attendance: 95 },

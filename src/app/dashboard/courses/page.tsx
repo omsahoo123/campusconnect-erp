@@ -3,7 +3,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { teacherScheduleData as defaultTeacherScheduleData, studentsData, staffData } from "@/lib/data";
 import { type Student } from "@/components/dashboard/students/student-table";
 import { BookOpen, Users, Edit, Clock, Plus, X } from "lucide-react";
@@ -25,7 +25,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { studentsData as defaultStudentsData } from "@/lib/data";
+import { studentGradesData as defaultStudentGradesData, type StudentGradesData, type StudentGrade } from "@/lib/grades";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Badge } from "@/components/ui/badge";
 
 type Course = {
     class: string;
@@ -57,7 +65,6 @@ const StudentCoursesPage = () => {
     }, [allCourses]);
 
     const getTeacherForCourse = (courseName: string) => {
-        // This is a mock; in a real app this would be a proper lookup
         if (courseName.includes('Calculus') || courseName.includes('Algebra')) {
             return staffData.find(s => s.name.includes("Carter"))?.name || 'Unknown';
         }
@@ -98,11 +105,14 @@ const StudentCoursesPage = () => {
     );
 }
 
+const gradeOptions = ["A+", "A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D+", "D", "F", "N/A"];
+
 const TeacherCoursesPage = () => {
     const { toast } = useToast();
     const [teacherScheduleData, setTeacherScheduleData] = useState<Course[]>(defaultTeacherScheduleData);
     const [enrollments, setEnrollments] = useState<Enrollment>({});
     const [allStudentsData, setAllStudentsData] = useState<Student[]>([]);
+    const [gradesData, setGradesData] = useState<StudentGradesData>({});
 
     const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
     const [dialogType, setDialogType] = useState<'edit' | 'students' | null>(null);
@@ -114,6 +124,7 @@ const TeacherCoursesPage = () => {
         try {
             const storedEnrollments = localStorage.getItem('courseEnrollments');
             const storedStudents = localStorage.getItem('studentsData');
+            const storedGrades = localStorage.getItem('studentGrades');
             
             const students = storedStudents ? JSON.parse(storedStudents) : defaultStudentsData;
             setAllStudentsData(students);
@@ -121,7 +132,6 @@ const TeacherCoursesPage = () => {
             if (storedEnrollments) {
                 setEnrollments(JSON.parse(storedEnrollments));
             } else {
-                // Initialize with some default enrollments if none exist
                 const initialEnrollments: Enrollment = {};
                 defaultTeacherScheduleData.forEach((course, courseIndex) => {
                     const studentsPerCourse = Math.floor(students.length / defaultTeacherScheduleData.length);
@@ -132,6 +142,14 @@ const TeacherCoursesPage = () => {
                 setEnrollments(initialEnrollments);
                 localStorage.setItem('courseEnrollments', JSON.stringify(initialEnrollments));
             }
+            
+            if (storedGrades) {
+                setGradesData(JSON.parse(storedGrades));
+            } else {
+                setGradesData(defaultStudentGradesData);
+                localStorage.setItem('studentGrades', JSON.stringify(defaultStudentGradesData));
+            }
+
         } catch (e) {
             console.error("Failed to load or initialize data", e);
         }
@@ -141,7 +159,7 @@ const TeacherCoursesPage = () => {
         loadData();
 
         const handleStorageChange = (event: StorageEvent) => {
-            if (event.key === 'studentsData' || event.key === 'courseEnrollments') {
+            if (event.key === 'studentsData' || event.key === 'courseEnrollments' || event.key === 'studentGrades') {
                 loadData();
             }
         };
@@ -153,8 +171,14 @@ const TeacherCoursesPage = () => {
     const updateEnrollments = (newEnrollments: Enrollment) => {
         setEnrollments(newEnrollments);
         localStorage.setItem('courseEnrollments', JSON.stringify(newEnrollments));
+        window.dispatchEvent(new Event('storage'));
     }
-
+    
+    const updateGrades = (newGrades: StudentGradesData) => {
+        setGradesData(newGrades);
+        localStorage.setItem('studentGrades', JSON.stringify(newGrades));
+        window.dispatchEvent(new Event('storage'));
+    }
 
     const handleEditClick = (course: Course) => {
         setSelectedCourse(course);
@@ -173,7 +197,6 @@ const TeacherCoursesPage = () => {
         const oldClassName = selectedCourse.class;
         const newClassName = editedCourse.name;
 
-        // Update course details
         const updatedCourses = teacherScheduleData.map(course => {
             if (course.class === oldClassName) {
                 return { 
@@ -187,12 +210,20 @@ const TeacherCoursesPage = () => {
         });
         setTeacherScheduleData(updatedCourses);
 
-        // Update enrollments if class name changed
-        if (oldClassName !== newClassName && enrollments[oldClassName]) {
-            const newEnrollments = {...enrollments};
-            newEnrollments[newClassName] = newEnrollments[oldClassName];
-            delete newEnrollments[oldClassName];
-            updateEnrollments(newEnrollments);
+        if (oldClassName !== newClassName) {
+            if (enrollments[oldClassName]) {
+                const newEnrollments = {...enrollments};
+                newEnrollments[newClassName] = newEnrollments[oldClassName];
+                delete newEnrollments[oldClassName];
+                updateEnrollments(newEnrollments);
+            }
+            const newGrades = {...gradesData};
+            Object.keys(newGrades).forEach(studentId => {
+                newGrades[studentId] = newGrades[studentId].map(grade => 
+                    grade.course === oldClassName ? { ...grade, course: newClassName } : grade
+                );
+            });
+            updateGrades(newGrades);
         }
 
         toast({
@@ -217,6 +248,16 @@ const TeacherCoursesPage = () => {
             [courseName]: [...currentEnrolled, studentToAdd]
         };
         updateEnrollments(newEnrollments);
+
+        // Add a default grade for the new student
+        const newGrades: StudentGradesData = {...gradesData};
+        if (!newGrades[studentToAdd]) newGrades[studentToAdd] = [];
+        const studentHasCourse = newGrades[studentToAdd].some(g => g.course === courseName);
+        if(!studentHasCourse) {
+            newGrades[studentToAdd].push({ course: courseName, grade: "N/A", attendance: 100 });
+            updateGrades(newGrades);
+        }
+
         toast({ title: "Student Added", description: "The student has been enrolled in the course." });
         setStudentToAdd('');
     }
@@ -230,11 +271,38 @@ const TeacherCoursesPage = () => {
             [courseName]: (enrollments[courseName] || []).filter(id => id !== studentId)
         };
         updateEnrollments(newEnrollments);
+
+        // Optional: remove grade entry
+        const newGrades = {...gradesData};
+        if(newGrades[studentId]) {
+            newGrades[studentId] = newGrades[studentId].filter(g => g.course !== courseName);
+            updateGrades(newGrades);
+        }
+
         toast({ title: "Student Removed", description: "The student has been removed from the course." });
+    }
+
+    const handleGradeChange = (studentId: string, courseName: string, newGrade: string) => {
+        const newGrades = {...gradesData};
+        if (!newGrades[studentId]) return;
+
+        const gradeIndex = newGrades[studentId].findIndex(g => g.course === courseName);
+        if (gradeIndex > -1) {
+            newGrades[studentId][gradeIndex].grade = newGrade;
+        } else {
+             // This case should ideally not happen if student is enrolled
+            newGrades[studentId].push({ course: courseName, grade: newGrade, attendance: 100 });
+        }
+        updateGrades(newGrades);
+        toast({ title: "Grade Updated", description: `Grade for student ${studentId} in ${courseName} set to ${newGrade}.`});
     }
 
     const getStudentName = (studentId: string) => {
         return allStudentsData.find(s => s.id === studentId)?.name || 'Unknown Student';
+    }
+    
+    const getStudentGrade = (studentId: string, courseName: string): string => {
+        return gradesData[studentId]?.find(g => g.course === courseName)?.grade || "N/A";
     }
 
     const availableStudents = useMemo(() => {
@@ -276,11 +344,13 @@ const TeacherCoursesPage = () => {
                                     <span>Time: {course.time}</span>
                                 </div>
                             </CardContent>
-                             <DialogTrigger asChild>
-                                <Button variant="ghost" className="m-4 mt-0" onClick={() => handleStudentsClick(course)}>
-                                    <Users className="mr-2 h-4 w-4" /> View Students
-                                </Button>
-                            </DialogTrigger>
+                             <CardFooter>
+                                <DialogTrigger asChild>
+                                    <Button variant="ghost" className="w-full justify-start" onClick={() => handleStudentsClick(course)}>
+                                        <Users className="mr-2 h-4 w-4" /> Manage Students
+                                    </Button>
+                                </DialogTrigger>
+                             </CardFooter>
                         </Card>
                     ))}
                 </div>
@@ -340,11 +410,11 @@ const TeacherCoursesPage = () => {
                     </DialogContent>
                  )}
                  {selectedCourse && dialogType === 'students' && (
-                     <DialogContent className="sm:max-w-[425px]">
+                     <DialogContent className="sm:max-w-md">
                         <DialogHeader>
                             <DialogTitle>Manage Students</DialogTitle>
                             <DialogDescription>
-                                Add or remove students from {selectedCourse.class}.
+                                Add, remove, or grade students for {selectedCourse.class}.
                             </DialogDescription>
                         </DialogHeader>
                         <div className="grid gap-4 py-4">
@@ -380,9 +450,25 @@ const TeacherCoursesPage = () => {
                                         (enrollments[selectedCourse.class] || []).map(studentId => (
                                             <div key={studentId} className="flex items-center justify-between py-2">
                                                 <span className="text-sm">{getStudentName(studentId)}</span>
-                                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveStudent(studentId)}>
-                                                    <X className="h-4 w-4" />
-                                                </Button>
+                                                <div className="flex items-center gap-2">
+                                                     <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button variant="outline" size="sm" className="w-20">
+                                                                {getStudentGrade(studentId, selectedCourse.class)}
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent>
+                                                            {gradeOptions.map(grade => (
+                                                                <DropdownMenuItem key={grade} onSelect={() => handleGradeChange(studentId, selectedCourse.class, grade)}>
+                                                                    {grade}
+                                                                </DropdownMenuItem>
+                                                            ))}
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveStudent(studentId)}>
+                                                        <X className="h-4 w-4 text-destructive" />
+                                                    </Button>
+                                                </div>
                                             </div>
                                         ))
                                     ) : (

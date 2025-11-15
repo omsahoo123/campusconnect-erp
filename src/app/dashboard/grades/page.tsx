@@ -1,10 +1,11 @@
 
+
 "use client";
 
 import { useState, useEffect } from "react";
 import { useCurrentUser } from "@/hooks/use-current-user";
-import { studentsData } from "@/lib/data";
-import { type StudentGrade, studentGradesData } from "@/lib/grades";
+import { studentsData, teacherScheduleData } from "@/lib/data";
+import { type StudentGrade, type StudentGradesData, studentGradesData as defaultStudentGradesData } from "@/lib/grades";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
@@ -23,6 +24,7 @@ const gradeColorMap: { [key: string]: string } = {
     "D+": "bg-orange-500",
     "D": "bg-red-500",
     "F": "bg-red-500",
+    "N/A": "bg-gray-400",
 };
 
 export default function GradesPage() {
@@ -30,13 +32,44 @@ export default function GradesPage() {
   const [studentGrades, setStudentGrades] = useState<StudentGrade[]>([]);
 
   useEffect(() => {
-    if (role === 'student') {
-      const studentProfile = studentsData.find(s => s.email === 'student@campus.edu');
-      if (studentProfile) {
-        const grades = studentGradesData[studentProfile.id] || [];
-        setStudentGrades(grades);
+    const loadGrades = () => {
+      if (role === 'student') {
+        const studentProfile = studentsData.find(s => s.email === 'student@campus.edu');
+        if (studentProfile) {
+          const storedGrades = localStorage.getItem('studentGrades');
+          const allGrades: StudentGradesData = storedGrades ? JSON.parse(storedGrades) : defaultStudentGradesData;
+          const grades = allGrades[studentProfile.id] || [];
+
+          // Also get attendance
+          const storedAttendance = localStorage.getItem('allAttendanceData');
+          const allAttendance = storedAttendance ? JSON.parse(storedAttendance) : {};
+
+          const gradesWithAttendance = grades.map(grade => {
+            let totalClasses = 0;
+            let attendedClasses = 0;
+            const courseAttendance = allAttendance[grade.course];
+            if (courseAttendance) {
+              for (const date in courseAttendance) {
+                if (courseAttendance[date].hasOwnProperty(studentProfile.id)) {
+                  totalClasses++;
+                  if (courseAttendance[date][studentProfile.id]) {
+                    attendedClasses++;
+                  }
+                }
+              }
+            }
+            const attendancePercentage = totalClasses > 0 ? Math.round((attendedClasses / totalClasses) * 100) : 100;
+            return { ...grade, attendance: attendancePercentage };
+          });
+
+          setStudentGrades(gradesWithAttendance);
+        }
       }
-    }
+    };
+    
+    loadGrades();
+    window.addEventListener('storage', loadGrades);
+    return () => window.removeEventListener('storage', loadGrades);
   }, [role]);
 
   if (role !== 'student') {
@@ -57,9 +90,10 @@ export default function GradesPage() {
       'C+': 2.3, 'C': 2.0, 'C-': 1.7,
       'D+': 1.3, 'D': 1.0, 'F': 0.0,
     };
-    if (studentGrades.length === 0) return "N/A";
-    const totalPoints = studentGrades.reduce((acc, grade) => acc + (gradePoints[grade.grade] || 0), 0);
-    return (totalPoints / studentGrades.length).toFixed(2);
+    const validGrades = studentGrades.filter(g => g.grade !== 'N/A' && gradePoints[g.grade] !== undefined);
+    if (validGrades.length === 0) return "N/A";
+    const totalPoints = validGrades.reduce((acc, grade) => acc + (gradePoints[grade.grade] || 0), 0);
+    return (totalPoints / validGrades.length).toFixed(2);
   }
 
   return (
