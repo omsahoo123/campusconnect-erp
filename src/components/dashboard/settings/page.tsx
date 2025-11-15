@@ -27,13 +27,11 @@ import { PlaceHolderImages } from "@/lib/placeholder-images"
 import { Textarea } from "@/components/ui/textarea"
 import type { UserRole } from "@/hooks/use-current-user"
 import { useToast } from "@/hooks/use-toast"
-import { useRouter } from "next/navigation"
 
 export default function SettingsPage() {
   const { setTheme } = useTheme()
   const { role } = useCurrentUser()
   const { toast } = useToast();
-  const router = useRouter();
   const [avatarUrl, setAvatarUrl] = useState<string>('');
   const [newAvatarFile, setNewAvatarFile] = useState<File | null>(null);
 
@@ -88,12 +86,8 @@ export default function SettingsPage() {
       description: "Your profile changes have been saved.",
     });
   }
-  
-  if (role === 'student') {
-      router.push('/dashboard/settings');
-      return null;
-  }
 
+  const profilePath = role === 'student' ? '/dashboard/settings' : '/dashboard/settings';
 
   return (
     <div className="space-y-6">

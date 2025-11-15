@@ -36,7 +36,7 @@ const navItems = {
     { href: "/dashboard/courses", icon: <BookOpen />, label: "My Courses", tooltip: "Courses" },
     { href: "/dashboard/grades", icon: <GraduationCap />, label: "Grades", tooltip: "Grades" },
     { href: "/dashboard/fees", icon: <Banknote />, label: "Fees", tooltip: "Fees" },
-    { href: "/dashboard/profile", icon: <Users />, label: "Profile", tooltip: "Profile" },
+    { href: "/dashboard/settings", icon: <Settings />, label: "Profile", tooltip: "Profile" },
   ],
   finance: [
     { href: "/dashboard", icon: <LayoutDashboard />, label: "Dashboard", tooltip: "Dashboard" },
