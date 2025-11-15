@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { studentsData as defaultStudentsData, teacherScheduleData } from "@/lib/data";
+import { defaultHostels, type Hostel } from "@/lib/hostel";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -34,11 +35,13 @@ type StudentDeadlines = {
 export default function StudentProfilePage() {
   const router = useRouter();
   const params = useParams<{ studentId: string }>();
-  const studentId = params.studentId;
+  const studentIdFromUrl = params.studentId;
   const { toast } = useToast();
-  const [studentsData, setStudentsData] = useState<Student[]>([]);
+  
   const [student, setStudent] = useState<Student | null | undefined>(undefined);
+  const [originalStudentId, setOriginalStudentId] = useState<string>(studentIdFromUrl);
   const [isEditing, setIsEditing] = useState(false);
+  
   const [deadlines, setDeadlines] = useState<Deadline[]>([]);
   const [newDeadline, setNewDeadline] = useState<{ subject: string; title: string; dueDate: string; document?: File | null; documentName?: string; }>({ subject: "", title: "", dueDate: "" });
 
@@ -46,37 +49,82 @@ export default function StudentProfilePage() {
   useEffect(() => {
     const storedStudents = localStorage.getItem('studentsData');
     const data = storedStudents ? JSON.parse(storedStudents) : defaultStudentsData;
-    setStudentsData(data);
-    const currentStudent = data.find((s: Student) => s.id === studentId);
+    const currentStudent = data.find((s: Student) => s.id === studentIdFromUrl);
     setStudent(currentStudent);
+    if(currentStudent) {
+        setOriginalStudentId(currentStudent.id);
+    }
 
     const storedDeadlines = localStorage.getItem('studentDeadlines');
     if (storedDeadlines) {
         const allDeadlines: StudentDeadlines = JSON.parse(storedDeadlines);
-        setDeadlines(allDeadlines[studentId] || []);
+        setDeadlines(allDeadlines[studentIdFromUrl] || []);
     }
 
-  }, [studentId]);
-
-  const updateAllDeadlines = (newStudentDeadlines: StudentDeadlines) => {
-    localStorage.setItem('studentDeadlines', JSON.stringify(newStudentDeadlines));
-    window.dispatchEvent(new Event('storage'));
-  }
+  }, [studentIdFromUrl]);
 
   const handleSave = () => {
     if (!student) return;
 
-    const updatedStudents = studentsData.map(s => s.id === student.id ? student : s);
+    const newStudentId = student.id;
+
+    // --- Update Student Data ---
+    const storedStudents = localStorage.getItem('studentsData');
+    const studentsData = storedStudents ? JSON.parse(storedStudents) : defaultStudentsData;
+    const updatedStudents = studentsData.map((s: Student) => 
+        s.id === originalStudentId ? student : s
+    );
     localStorage.setItem('studentsData', JSON.stringify(updatedStudents));
     window.dispatchEvent(new Event('storage'));
+
+    // --- If ID changed, update Hostel Data ---
+    if (originalStudentId !== newStudentId) {
+        const storedHostels = localStorage.getItem('hostelsData');
+        let hostelsData: Hostel[] = storedHostels ? JSON.parse(storedHostels) : defaultHostels;
+
+        const updatedHostels = hostelsData.map(hostel => ({
+            ...hostel,
+            rooms: hostel.rooms.map(room => ({
+                ...room,
+                occupants: room.occupants.map(occupantId =>
+                    occupantId === originalStudentId ? newStudentId : occupantId
+                )
+            }))
+        }));
+        localStorage.setItem('hostelsData', JSON.stringify(updatedHostels));
+        window.dispatchEvent(new Event('storage'));
+
+        // --- If ID changed, update Deadlines Data ---
+        const storedDeadlines = localStorage.getItem('studentDeadlines');
+        if (storedDeadlines) {
+            const allDeadlines: StudentDeadlines = JSON.parse(storedDeadlines);
+            if(allDeadlines[originalStudentId]) {
+                allDeadlines[newStudentId] = allDeadlines[originalStudentId];
+                delete allDeadlines[originalStudentId];
+                localStorage.setItem('studentDeadlines', JSON.stringify(allDeadlines));
+                window.dispatchEvent(new Event('storage'));
+            }
+        }
+    }
     
     toast({
         title: "Profile Updated",
         description: `${student.name}'s profile has been updated.`,
     });
     setIsEditing(false);
-    setStudent({...student}); 
+    
+    // If ID was changed, redirect to the new URL
+    if (originalStudentId !== newStudentId) {
+        router.push(`/dashboard/students/${newStudentId}`);
+    } else {
+        setStudent({...student}); // re-render with latest data
+    }
   };
+
+  const updateAllDeadlines = (newStudentDeadlines: StudentDeadlines) => {
+    localStorage.setItem('studentDeadlines', JSON.stringify(newStudentDeadlines));
+    window.dispatchEvent(new Event('storage'));
+  }
   
   const handleAddDeadline = () => {
       if (!newDeadline.subject || !newDeadline.title || !newDeadline.dueDate) {
@@ -100,7 +148,7 @@ export default function StudentProfilePage() {
 
         const storedDeadlines = localStorage.getItem('studentDeadlines');
         const allDeadlines: StudentDeadlines = storedDeadlines ? JSON.parse(storedDeadlines) : {};
-        allDeadlines[studentId] = updatedDeadlines;
+        allDeadlines[studentIdFromUrl] = updatedDeadlines;
         updateAllDeadlines(allDeadlines);
 
         setNewDeadline({ subject: "", title: "", dueDate: "" });
@@ -124,7 +172,7 @@ export default function StudentProfilePage() {
       
       const storedDeadlines = localStorage.getItem('studentDeadlines');
       const allDeadlines: StudentDeadlines = storedDeadlines ? JSON.parse(storedDeadlines) : {};
-      allDeadlines[studentId] = updatedDeadlines;
+      allDeadlines[studentIdFromUrl] = updatedDeadlines;
       updateAllDeadlines(allDeadlines);
 
       toast({ variant: 'destructive', title: 'Deadline Removed', description: 'The deadline has been removed.' });
@@ -171,12 +219,17 @@ export default function StudentProfilePage() {
         </Avatar>
         <div>
             {isEditing ? (
-                 <Input className="text-3xl font-bold" value={student.name} onChange={(e) => setStudent({...student, name: e.target.value })} />
+                 <Input className="text-3xl font-bold mb-2" value={student.name} onChange={(e) => setStudent({...student, name: e.target.value })} />
             ) : (
                  <h1 className="text-3xl font-bold">{student.name}</h1>
             )}
          
-          <p className="text-muted-foreground">{student.id}</p>
+          {isEditing ? (
+              <Input value={student.id} onChange={(e) => setStudent({...student, id: e.target.value })} />
+          ) : (
+             <p className="text-muted-foreground">{student.id}</p>
+          )}
+          
           {isEditing ? (
               <Select value={student.status} onValueChange={(value: "Active" | "Inactive" | "Suspended") => setStudent({...student, status: value})}>
                   <SelectTrigger className="w-[180px] mt-2">
@@ -305,7 +358,3 @@ export default function StudentProfilePage() {
     </div>
   );
 }
-
-    
-
-    
