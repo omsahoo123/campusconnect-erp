@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -9,7 +10,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, Users, GraduationCap, Briefcase, Banknote, BookOpen, Settings, FileText, CalendarCheck } from "lucide-react";
+import { LayoutDashboard, Users, GraduationCap, Briefcase, Banknote, BookOpen, Settings, FileText, CalendarCheck, CalendarDays } from "lucide-react";
 import React from "react";
 
 const navItems = {
@@ -20,6 +21,7 @@ const navItems = {
     { href: "/dashboard/staff", icon: <Briefcase />, label: "Staff", tooltip: "Staff" },
     { href: "/dashboard/admissions", icon: <GraduationCap />, label: "Admissions", tooltip: "Admissions" },
     { href: "/dashboard/finance", icon: <Banknote />, label: "Finance", tooltip: "Finance" },
+    { href: "/dashboard/holidays", icon: <CalendarDays />, label: "Holidays", tooltip: "Holidays" },
     { href: "/dashboard/settings", icon: <Settings />, label: "Settings", tooltip: "Settings" },
   ],
   teacher: [

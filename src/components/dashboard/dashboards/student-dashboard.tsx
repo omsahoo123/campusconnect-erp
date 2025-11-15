@@ -4,7 +4,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookOpen, CalendarCheck, Clock, CircleDollarSign, CheckCircle } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import { holidays, studentsData } from "@/lib/data";
+import { holidays as defaultHolidays, studentsData } from "@/lib/data";
 import { useEffect, useState, useMemo } from "react";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { Calendar } from "@/components/ui/calendar";
@@ -26,13 +26,33 @@ type CourseAttendance = {
     [courseName: string]: DailyAttendance;
 }
 
+type Holiday = {
+    date: string;
+    name: string;
+};
+
 export function StudentDashboard() {
     const { role } = useCurrentUser();
     const [enrolledCoursesCount, setEnrolledCoursesCount] = useState(0);
     const [overallAttendance, setOverallAttendance] = useState(0);
     const [studentAttendance, setStudentAttendance] = useState<{[date: string]: boolean}>({});
+    const [holidays, setHolidays] = useState<Holiday[]>([]);
 
     const studentProfile = useMemo(() => studentsData.find(s => s.email === 'student@campus.edu'), []);
+
+    useEffect(() => {
+        const storedHolidays = localStorage.getItem('holidays');
+        setHolidays(storedHolidays ? JSON.parse(storedHolidays) : defaultHolidays);
+
+        const handleStorageChange = (event: StorageEvent) => {
+            if (event.key === 'holidays') {
+                setHolidays(JSON.parse(event.newValue || '[]'));
+            }
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+        return () => window.removeEventListener('storage', handleStorageChange);
+    }, []);
 
 
     useEffect(() => {
@@ -89,7 +109,7 @@ export function StudentDashboard() {
     }, [role, studentProfile]);
 
 
-    const holidayDates = useMemo(() => holidays.map(h => new Date(h.date)), []);
+    const holidayDates = useMemo(() => holidays.map(h => new Date(h.date)), [holidays]);
 
     const modifiers = {
         present: (date: Date) => studentAttendance[format(date, 'yyyy-MM-dd')] === true,
