@@ -34,7 +34,7 @@ export default function GradesPage() {
   useEffect(() => {
     const loadGrades = () => {
       if (role === 'student') {
-        const studentProfile = studentsData.find(s => s.email === 'a.johnson@campus.edu');
+        const studentProfile = studentsData.find(s => s.email === 'osahoo9178@gmail.com');
         if (studentProfile) {
           const storedGrades = localStorage.getItem('studentGrades');
           const allGrades: StudentGradesData = storedGrades ? JSON.parse(storedGrades) : defaultStudentGradesData;

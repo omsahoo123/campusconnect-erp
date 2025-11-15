@@ -52,7 +52,7 @@ export function StudentDashboard() {
     const [holidays, setHolidays] = useState<Holiday[]>([]);
     const [deadlines, setDeadlines] = useState<Deadline[]>([]);
 
-    const studentProfile = useMemo(() => studentsData.find(s => s.email === 'a.johnson@campus.edu'), []);
+    const studentProfile = useMemo(() => studentsData.find(s => s.email === 'osahoo9178@gmail.com'), []);
 
     useEffect(() => {
         const storedHolidays = localStorage.getItem('holidays');

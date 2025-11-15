@@ -89,7 +89,7 @@ export default function SettingsPage() {
     });
   }
   
-  if (role === 'student' && profile.email !== 'a.johnson@campus.edu') {
+  if (role === 'student' && profile.email !== 'osahoo9178@gmail.com') {
       router.push('/dashboard/settings');
       return null;
   }

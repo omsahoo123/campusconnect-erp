@@ -8,13 +8,13 @@ export const userProfiles: Record<UserRole, { name: string; email: string; avata
     avatar: "/avatars/01.png",
   },
   teacher: {
-    name: "Dr. Eleanor Vance",
-    email: "e.vance@campus.edu",
+    name: "Ayushman Patra",
+    email: "osahoo225@gmail.com",
     avatar: "/avatars/02.png",
   },
   student: {
-    name: "Alex Johnson",
-    email: "a.johnson@campus.edu",
+    name: "Om Sahoo",
+    email: "osahoo9178@gmail.com",
     avatar: "/avatars/03.png",
   },
   finance: {
@@ -25,23 +25,11 @@ export const userProfiles: Record<UserRole, { name: string; email: string; avata
 };
 
 export const studentsData = [
-  { id: "STU001", name: "Liam Smith", email: "liam.smith@example.com", phone: "(123) 456-7890", joinDate: "2023-01-15", status: "Active" as const },
-  { id: "STU002", name: "Olivia Brown", email: "olivia.brown@example.com", phone: "(123) 456-7890", joinDate: "2023-01-15", status: "Active" as const },
-  { id: "STU003", name: "Noah Jones", email: "noah.jones@example.com", phone: "(123) 456-7890", joinDate: "2023-02-01", status: "Inactive" as const },
-  { id: "STU004", name: "Emma Garcia", email: "emma.garcia@example.com", phone: "(123) 456-7890", joinDate: "2023-02-01", status: "Active" as const },
-  { id: "STU005", name: "Oliver Miller", email: "oliver.miller@example.com", phone: "(123) 456-7890", joinDate: "2023-03-10", status: "Active" as const },
-  { id: "STU006", name: "Ava Davis", email: "ava.davis@example.com", phone: "(123) 456-7890", joinDate: "2023-03-10", status: "Suspended" as const },
-  { id: "STU007", name: "Elijah Rodriguez", email: "e.rodriguez@example.com", phone: "(123) 456-7890", joinDate: "2023-04-05", status: "Active" as const },
-  { id: "STU008", name: "Sophia Wilson", email: "sophia.wilson@example.com", phone: "(123) 456-7890", joinDate: "2023-04-05", status: "Active" as const },
-  { id: "STU009", name: "Alex Johnson", email: "a.johnson@campus.edu", phone: "(123) 456-7890", joinDate: "2023-05-20", status: "Active" as const}
+  { id: "STU001", name: "Om Sahoo", email: "osahoo9178@gmail.com", phone: "(123) 456-7890", joinDate: "2023-01-15", status: "Active" as const }
 ];
 
 export const staffData = [
-  { id: "TCH01", name: "Dr. Evelyn Reed", department: "Computer Science", email: "e.reed@campus.edu", status: "Active" as const },
-  { id: "TCH02", name: "Mr. Benjamin Carter", department: "Mathematics", email: "b.carter@campus.edu", status: "Active" as const },
-  { id: "TCH03", name: "Ms. Isabella Chen", department: "Physics", email: "i.chen@campus.edu", status: "On Leave" as const },
-  { id: "TCH04", name: "Prof. Samuel Green", department: "History", email: "s.green@campus.edu", status: "Active" as const },
-  { id: "TCH05", name: "Dr. Eleanor Vance", department: "Physics", email: "e.vance@campus.edu", status: "Active" as const }
+  { id: "TCH01", name: "Ayushman Patra", department: "Computer Science", email: "osahoo225@gmail.com", status: "Active" as const }
 ];
 
 export const feeCollectionData = [

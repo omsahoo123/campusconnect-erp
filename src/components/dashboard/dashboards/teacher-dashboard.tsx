@@ -3,7 +3,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Clock, Book, Users, BarChart, AlertTriangle } from "lucide-react";
-import { teacherScheduleData } from "@/lib/data";
+import { teacherScheduleData, userProfiles } from "@/lib/data";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Link from "next/link";
@@ -57,7 +57,7 @@ export function TeacherDashboard() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-bold tracking-tight font-headline">Welcome, Dr. Vance!</h1>
+        <h1 className="text-2xl font-bold tracking-tight font-headline">Welcome, {userProfiles.teacher.name}!</h1>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

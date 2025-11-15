@@ -1,5 +1,4 @@
 
-
 export type StudentGrade = {
   course: string;
   grade: string;
@@ -12,38 +11,10 @@ export type StudentGradesData = {
 
 // This data is now just the default. The app will use localStorage.
 export const studentGradesData: StudentGradesData = {
-  // Grades for Alex Johnson (a.johnson@campus.edu)
-  "STU009": [
+  // Grades for Om Sahoo (osahoo9178@gmail.com)
+  "STU001": [
     { course: "Calculus I", grade: "N/A", attendance: 100 },
     { course: "Linear Algebra", grade: "N/A", attendance: 100 },
     { course: "Advanced Statistics", grade: "N/A", attendance: 100 },
-  ],
-  "STU001": [
-    { course: "Calculus I", grade: "A+", attendance: 95 },
-    { course: "Advanced Statistics", grade: "A", attendance: 98 },
-  ],
-  "STU002": [
-    { course: "Calculus I", grade: "A", attendance: 88 },
-    { course: "Linear Algebra", grade: "B", attendance: 91 },
-  ],
-  "STU003": [
-    { course: "Calculus I", grade: "C", attendance: 74 },
-    { course: "Advanced Statistics", grade: "C-", attendance: 80 },
-  ],
-  "STU004": [
-    { course: "Calculus I", grade: "A+", attendance: 98 },
-    { course: "Linear Algebra", grade: "A+", attendance: 100 },
-  ],
-   "STU005": [
-    { course: "Calculus I", grade: "A-", attendance: 91 },
-  ],
-   "STU006": [
-    { course: "Calculus I", grade: "B", attendance: 85 },
-  ],
-    "STU007": [
-    { course: "Calculus I", grade: "D+", attendance: 92 },
-  ],
-    "STU008": [
-    { course: "Calculus I", grade: "C-", attendance: 78 },
-  ],
+  ]
 };
