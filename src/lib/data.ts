@@ -1,23 +1,10 @@
 
 import type { UserRole } from "@/hooks/use-current-user";
+import type { Student as StudentType } from "@/components/dashboard/students/student-table";
+import type { Staff as StaffType } from "@/components/dashboard/staff/staff-table";
 
-export type Student = {
-  id: string;
-  name: string;
-  gender: "male" | "female" | "other";
-  email: string;
-  phone: string;
-  joinDate: string;
-  status: "Active" | "Inactive" | "Suspended";
-};
-
-export type Staff = {
-  id: string;
-  name: string;
-  department: string;
-  email: string;
-  status: "Active" | "On Leave" | "Inactive";
-};
+export type Student = StudentType;
+export type Staff = StaffType;
 
 
 export const userProfiles: Record<UserRole, { name: string; email: string; avatar: string }> = {

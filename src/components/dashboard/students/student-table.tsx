@@ -71,12 +71,13 @@ import { Label } from "@/components/ui/label"
 
 export type Student = {
   id: string
-  name: string
-  email: string
+  name: string;
+  email: string;
   phone: string;
-  joinDate: string
-  status: "Active" | "Inactive" | "Suspended"
-}
+  gender: "male" | "female" | "other";
+  joinDate: string;
+  status: "Active" | "Inactive" | "Suspended";
+};
 
 type GeneratedCredential = {
     email: string,
@@ -311,6 +312,7 @@ export function StudentTable() {
     const updatedStudents = data.filter(student => student.id !== studentId);
     setData(updatedStudents);
     localStorage.setItem('studentsData', JSON.stringify(updatedStudents));
+    window.dispatchEvent(new Event('storage'));
     toast({
       title: "Student Deleted",
       description: `Student with ID ${studentId} has been removed.`,
@@ -323,6 +325,7 @@ export function StudentTable() {
     );
     setData(updatedStudents);
     localStorage.setItem('studentsData', JSON.stringify(updatedStudents));
+    window.dispatchEvent(new Event('storage'));
     toast({
         title: "Status Updated",
         description: `Student ${studentId} has been marked as ${newStatus}.`,
@@ -387,6 +390,7 @@ export function StudentTable() {
     const updatedStudents = data.filter(student => !selectedIds.includes(student.id));
     setData(updatedStudents);
     localStorage.setItem('studentsData', JSON.stringify(updatedStudents));
+    window.dispatchEvent(new Event('storage'));
     table.resetRowSelection();
     toast({
       title: "Students Deleted",
@@ -578,6 +582,3 @@ export function StudentTable() {
     </div>
   )
 }
-    
-
-    

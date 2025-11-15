@@ -299,6 +299,7 @@ export function StaffTable() {
     const updatedStaff = data.filter(staff => staff.id !== staffId);
     setData(updatedStaff);
     localStorage.setItem('staffData', JSON.stringify(updatedStaff));
+    window.dispatchEvent(new Event('storage'));
     toast({
       title: "Staff Deleted",
       description: `Staff member with ID ${staffId} has been removed.`,
@@ -311,6 +312,7 @@ export function StaffTable() {
     );
     setData(updatedStaff);
     localStorage.setItem('staffData', JSON.stringify(updatedStaff));
+    window.dispatchEvent(new Event('storage'));
     toast({
       title: "Status Updated",
       description: `Staff member ${staffId} has been marked as ${newStatus}.`,
@@ -374,6 +376,7 @@ export function StaffTable() {
     const updatedStaff = data.filter(staff => !selectedIds.includes(staff.id));
     setData(updatedStaff);
     localStorage.setItem('staffData', JSON.stringify(updatedStaff));
+    window.dispatchEvent(new Event('storage'));
     table.resetRowSelection();
     toast({
       title: "Staff Members Deleted",
@@ -565,7 +568,3 @@ export function StaffTable() {
     </div>
   )
 }
-
-    
-
-    
