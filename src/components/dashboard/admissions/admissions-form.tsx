@@ -81,7 +81,8 @@ export function AdmissionsForm() {
       gender: values.gender,
       date: new Date().toISOString(),
       status: 'Pending' as const,
-      email: values.email
+      email: values.email,
+      phone: values.phone,
     };
 
     const updatedApps = [...existingApps, newApp];

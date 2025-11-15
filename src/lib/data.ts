@@ -25,15 +25,15 @@ export const userProfiles: Record<UserRole, { name: string; email: string; avata
 };
 
 export const studentsData = [
-  { id: "STU001", name: "Liam Smith", email: "liam.smith@example.com", joinDate: "2023-01-15", status: "Active" as const },
-  { id: "STU002", name: "Olivia Brown", email: "olivia.brown@example.com", joinDate: "2023-01-15", status: "Active" as const },
-  { id: "STU003", name: "Noah Jones", email: "noah.jones@example.com", joinDate: "2023-02-01", status: "Inactive" as const },
-  { id: "STU004", name: "Emma Garcia", email: "emma.garcia@example.com", joinDate: "2023-02-01", status: "Active" as const },
-  { id: "STU005", name: "Oliver Miller", email: "oliver.miller@example.com", joinDate: "2023-03-10", status: "Active" as const },
-  { id: "STU006", name: "Ava Davis", email: "ava.davis@example.com", joinDate: "2023-03-10", status: "Suspended" as const },
-  { id: "STU007", name: "Elijah Rodriguez", email: "e.rodriguez@example.com", joinDate: "2023-04-05", status: "Active" as const },
-  { id: "STU008", name: "Sophia Wilson", email: "sophia.wilson@example.com", joinDate: "2023-04-05", status: "Active" as const },
-  { id: "STU009", name: "Alex Johnson", email: "student@campus.edu", joinDate: "2023-05-20", status: "Active" as const}
+  { id: "STU001", name: "Liam Smith", email: "liam.smith@example.com", phone: "(123) 456-7890", joinDate: "2023-01-15", status: "Active" as const },
+  { id: "STU002", name: "Olivia Brown", email: "olivia.brown@example.com", phone: "(123) 456-7890", joinDate: "2023-01-15", status: "Active" as const },
+  { id: "STU003", name: "Noah Jones", email: "noah.jones@example.com", phone: "(123) 456-7890", joinDate: "2023-02-01", status: "Inactive" as const },
+  { id: "STU004", name: "Emma Garcia", email: "emma.garcia@example.com", phone: "(123) 456-7890", joinDate: "2023-02-01", status: "Active" as const },
+  { id: "STU005", name: "Oliver Miller", email: "oliver.miller@example.com", phone: "(123) 456-7890", joinDate: "2023-03-10", status: "Active" as const },
+  { id: "STU006", name: "Ava Davis", email: "ava.davis@example.com", phone: "(123) 456-7890", joinDate: "2023-03-10", status: "Suspended" as const },
+  { id: "STU007", name: "Elijah Rodriguez", email: "e.rodriguez@example.com", phone: "(123) 456-7890", joinDate: "2023-04-05", status: "Active" as const },
+  { id: "STU008", name: "Sophia Wilson", email: "sophia.wilson@example.com", phone: "(123) 456-7890", joinDate: "2023-04-05", status: "Active" as const },
+  { id: "STU009", name: "Alex Johnson", email: "student@campus.edu", phone: "(123) 456-7890", joinDate: "2023-05-20", status: "Active" as const}
 ];
 
 export const staffData = [

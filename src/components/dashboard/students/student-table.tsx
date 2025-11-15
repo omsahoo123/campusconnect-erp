@@ -73,6 +73,7 @@ export type Student = {
   id: string
   name: string
   email: string
+  phone: string;
   joinDate: string
   status: "Active" | "Inactive" | "Suspended"
 }
@@ -567,5 +568,4 @@ export function StudentTable() {
     </div>
   )
 }
-
     

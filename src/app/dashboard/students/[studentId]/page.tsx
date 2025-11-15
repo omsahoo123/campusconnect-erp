@@ -212,7 +212,11 @@ export default function StudentProfilePage() {
             </div>
             <div className="flex items-center gap-4">
                 <Phone className="h-5 w-5 text-muted-foreground" />
-                <span className="text-sm">(123) 456-7890</span>
+                 {isEditing ? (
+                    <Input value={student.phone} onChange={(e) => setStudent({...student, phone: e.target.value})} />
+                ) : (
+                    <span className="text-sm">{student.phone}</span>
+                )}
             </div>
             <div className="flex items-center gap-4">
                 <CalendarIcon className="h-5 w-5 text-muted-foreground" />

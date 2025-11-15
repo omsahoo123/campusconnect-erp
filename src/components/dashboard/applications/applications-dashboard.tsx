@@ -28,6 +28,7 @@ interface StudentApplication {
   date: string;
   status: 'Pending';
   email: string;
+  phone: string;
 }
 
 interface TeacherApplication {
@@ -101,6 +102,7 @@ export function ApplicationsDashboard() {
         id: `STU${Date.now()}`.slice(0, 6),
         name: studentApp.name,
         email: studentApp.email,
+        phone: studentApp.phone,
         joinDate: new Date().toISOString(),
         status: "Active" as const
       };
@@ -314,5 +316,4 @@ export function ApplicationsDashboard() {
     </div>
   );
 }
-
     
