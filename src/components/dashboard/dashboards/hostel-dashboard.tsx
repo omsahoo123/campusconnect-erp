@@ -5,6 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Home, Users, Bed, Utensils } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, XAxis, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from "@/components/ui/chart";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { defaultRoomStatusData, defaultHostelStudents, defaultMessData } from "@/lib/hostel";
+import { useToast } from "@/hooks/use-toast";
 
 const chartConfig: ChartConfig = {
   occupied: {
@@ -17,16 +20,86 @@ const chartConfig: ChartConfig = {
   },
 };
 
-const roomStatusData = [
-  { floor: "Floor 1", occupied: 45, available: 15 },
-  { floor: "Floor 2", occupied: 30, available: 30 },
-  { floor: "Floor 3", occupied: 55, available: 5 },
-  { floor: "Floor 4", occupied: 25, available: 35 },
-];
+type RoomStatus = {
+    floor: string;
+    occupied: number;
+    total: number;
+}
+
+type MessData = {
+    status: string;
+    nextMeal: string;
+}
 
 export function HostelDashboard() {
-  const totalRooms = roomStatusData.reduce((acc, floor) => acc + floor.occupied + floor.available, 0);
-  const occupiedRooms = roomStatusData.reduce((acc, floor) => acc + floor.occupied, 0);
+  const [roomStatus, setRoomStatus] = useState<RoomStatus[]>([]);
+  const [hostelStudentCount, setHostelStudentCount] = useState(0);
+  const [messData, setMessData] = useState<MessData>({ status: 'Inactive', nextMeal: 'N/A' });
+  const { toast } = useToast();
+
+  const loadData = useCallback(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        const storedRoomStatus = localStorage.getItem('hostelRoomStatus');
+        setRoomStatus(storedRoomStatus ? JSON.parse(storedRoomStatus) : defaultRoomStatusData);
+        
+        const storedHostelStudents = localStorage.getItem('hostelStudents');
+        setHostelStudentCount(storedHostelStudents ? JSON.parse(storedHostelStudents).length : defaultHostelStudents.length);
+        
+        const storedMessData = localStorage.getItem('hostelMessData');
+        setMessData(storedMessData ? JSON.parse(storedMessData) : defaultMessData);
+
+      }
+    } catch (error) {
+      console.error("Failed to load hostel data from localStorage", error);
+       toast({
+        variant: "destructive",
+        title: "Error loading data",
+        description: "Could not load hostel data from local storage.",
+      });
+    }
+  }, [toast]);
+
+  useEffect(() => {
+    loadData();
+
+    // Initialize if not present
+    if (!localStorage.getItem('hostelRoomStatus')) {
+        localStorage.setItem('hostelRoomStatus', JSON.stringify(defaultRoomStatusData));
+    }
+    if (!localStorage.getItem('hostelStudents')) {
+        localStorage.setItem('hostelStudents', JSON.stringify(defaultHostelStudents));
+    }
+    if (!localStorage.getItem('hostelMessData')) {
+        localStorage.setItem('hostelMessData', JSON.stringify(defaultMessData));
+    }
+
+
+    const handleStorageChange = (event: StorageEvent) => {
+      if (['hostelRoomStatus', 'hostelStudents', 'hostelMessData'].includes(event.key || '')) {
+        loadData();
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [loadData]);
+
+
+  const { totalRooms, occupiedRooms } = useMemo(() => {
+    const total = roomStatus.reduce((acc, floor) => acc + floor.total, 0);
+    const occupied = roomStatus.reduce((acc, floor) => acc + floor.occupied, 0);
+    return { totalRooms: total, occupiedRooms: occupied };
+  }, [roomStatus]);
+
+  const chartData = useMemo(() => {
+    return roomStatus.map(floor => ({
+        ...floor,
+        available: floor.total - floor.occupied
+    }));
+  }, [roomStatus]);
 
   return (
     <div className="space-y-6">
@@ -52,7 +125,7 @@ export function HostelDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{occupiedRooms}</div>
-            <p className="text-xs text-muted-foreground">{(occupiedRooms / totalRooms * 100).toFixed(0)}% occupancy rate</p>
+            <p className="text-xs text-muted-foreground">{totalRooms > 0 ? (occupiedRooms / totalRooms * 100).toFixed(0) : 0}% occupancy rate</p>
           </CardContent>
         </Card>
         <Card>
@@ -61,7 +134,7 @@ export function HostelDashboard() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">155</div>
+            <div className="text-2xl font-bold">{hostelStudentCount}</div>
             <p className="text-xs text-muted-foreground">Currently residing in hostel</p>
           </CardContent>
         </Card>
@@ -71,8 +144,8 @@ export function HostelDashboard() {
             <Utensils className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">Active</div>
-            <p className="text-xs text-muted-foreground">Next meal: Lunch</p>
+            <div className="text-2xl font-bold">{messData.status}</div>
+            <p className="text-xs text-muted-foreground">Next meal: {messData.nextMeal}</p>
           </CardContent>
         </Card>
       </div>
@@ -85,7 +158,7 @@ export function HostelDashboard() {
         <CardContent>
           <ChartContainer config={chartConfig} className="h-[300px] w-full">
             <ResponsiveContainer>
-              <BarChart data={roomStatusData} accessibilityLayer>
+              <BarChart data={chartData} accessibilityLayer>
                 <CartesianGrid vertical={false} />
                 <XAxis dataKey="floor" tickLine={false} tickMargin={10} axisLine={false} />
                 <ChartTooltip content={<ChartTooltipContent indicator="dot" />} />
