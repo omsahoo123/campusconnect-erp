@@ -14,7 +14,7 @@ export const userProfiles: Record<UserRole, { name: string; email: string; avata
   },
   student: {
     name: "Alex Johnson",
-    email: "student@campus.edu",
+    email: "a.johnson@campus.edu",
     avatar: "/avatars/03.png",
   },
   finance: {
@@ -33,7 +33,7 @@ export const studentsData = [
   { id: "STU006", name: "Ava Davis", email: "ava.davis@example.com", phone: "(123) 456-7890", joinDate: "2023-03-10", status: "Suspended" as const },
   { id: "STU007", name: "Elijah Rodriguez", email: "e.rodriguez@example.com", phone: "(123) 456-7890", joinDate: "2023-04-05", status: "Active" as const },
   { id: "STU008", name: "Sophia Wilson", email: "sophia.wilson@example.com", phone: "(123) 456-7890", joinDate: "2023-04-05", status: "Active" as const },
-  { id: "STU009", name: "Alex Johnson", email: "student@campus.edu", phone: "(123) 456-7890", joinDate: "2023-05-20", status: "Active" as const}
+  { id: "STU009", name: "Alex Johnson", email: "a.johnson@campus.edu", phone: "(123) 456-7890", joinDate: "2023-05-20", status: "Active" as const}
 ];
 
 export const staffData = [

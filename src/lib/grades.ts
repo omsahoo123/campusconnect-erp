@@ -12,7 +12,7 @@ export type StudentGradesData = {
 
 // This data is now just the default. The app will use localStorage.
 export const studentGradesData: StudentGradesData = {
-  // Grades for Alex Johnson (student@campus.edu)
+  // Grades for Alex Johnson (a.johnson@campus.edu)
   "STU009": [
     { course: "Calculus I", grade: "N/A", attendance: 100 },
     { course: "Linear Algebra", grade: "N/A", attendance: 100 },

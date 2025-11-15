@@ -50,7 +50,7 @@ const StudentCoursesPage = () => {
     const [allCourses] = useState<Course[]>(defaultTeacherScheduleData);
 
     useEffect(() => {
-        const studentProfile = studentsData.find(s => s.email === 'student@campus.edu');
+        const studentProfile = studentsData.find(s => s.email === 'a.johnson@campus.edu');
         if (studentProfile) {
             const studentId = studentProfile.id;
             const storedEnrollments = localStorage.getItem('courseEnrollments');
