@@ -334,13 +334,23 @@ export function StudentTable() {
         toast({ variant: 'destructive', title: "Permission Denied", description: "Only teachers or admins can generate credentials." });
         return;
     }
-    const password = Math.random().toString(36).slice(-8);
-    const credential = { email: student.email, password: password, role: 'student' };
-
+    
     const storedCredentialsString = localStorage.getItem('userCredentials');
     const storedCredentials = storedCredentialsString ? JSON.parse(storedCredentialsString) : [];
     
+    const existingUser = storedCredentials.find((cred: any) => cred.email === student.email);
+
+    let password;
+    if (existingUser && existingUser.password) {
+        password = existingUser.password;
+    } else {
+        password = Math.random().toString(36).slice(-8);
+    }
+    
+    const credential = { email: student.email, password: password, role: 'student' };
+    
     const existingUserIndex = storedCredentials.findIndex((cred: any) => cred.email === student.email);
+
     if (existingUserIndex > -1) {
         storedCredentials[existingUserIndex] = credential;
     } else {

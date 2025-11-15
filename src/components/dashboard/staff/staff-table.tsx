@@ -322,11 +322,20 @@ export function StaffTable() {
         toast({ variant: 'destructive', title: "Permission Denied", description: "Only admins can generate credentials for staff." });
         return;
     }
-    const password = Math.random().toString(36).slice(-8);
-    const credential = { email: staff.email, password: password, role: 'teacher' };
 
     const storedCredentialsString = localStorage.getItem('userCredentials');
     const storedCredentials = storedCredentialsString ? JSON.parse(storedCredentialsString) : [];
+    
+    const existingUser = storedCredentials.find((cred: any) => cred.email === staff.email);
+    
+    let password;
+    if (existingUser && existingUser.password) {
+        password = existingUser.password;
+    } else {
+        password = Math.random().toString(36).slice(-8);
+    }
+
+    const credential = { email: staff.email, password: password, role: 'teacher' };
     
     const existingUserIndex = storedCredentials.findIndex((cred: any) => cred.email === staff.email);
     if (existingUserIndex > -1) {
@@ -556,5 +565,7 @@ export function StaffTable() {
     </div>
   )
 }
+
+    
 
     
