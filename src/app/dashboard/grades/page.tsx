@@ -36,8 +36,17 @@ export default function GradesPage() {
       if (role === 'student') {
         const studentProfile = studentsData.find(s => s.email === 'osahoo9178@gmail.com');
         if (studentProfile) {
+          
+          let allGrades: StudentGradesData = {};
           const storedGrades = localStorage.getItem('studentGrades');
-          const allGrades: StudentGradesData = storedGrades ? JSON.parse(storedGrades) : defaultStudentGradesData;
+          if (storedGrades) {
+            allGrades = JSON.parse(storedGrades);
+          } else {
+            localStorage.setItem('studentGrades', JSON.stringify(defaultStudentGradesData));
+            allGrades = defaultStudentGradesData;
+            window.dispatchEvent(new Event('storage'));
+          }
+          
           const grades = allGrades[studentProfile.id] || [];
 
           // Also get attendance
@@ -158,3 +167,5 @@ export default function GradesPage() {
     </div>
   );
 }
+
+    

@@ -53,20 +53,32 @@ const StudentCoursesPage = () => {
         const studentProfile = studentsData.find(s => s.email === 'osahoo9178@gmail.com');
         if (studentProfile) {
             const studentId = studentProfile.id;
+            let enrollments: Enrollment = {};
+
             const storedEnrollments = localStorage.getItem('courseEnrollments');
             if (storedEnrollments) {
-                const enrollments: Enrollment = JSON.parse(storedEnrollments);
-                const coursesForStudent = allCourses.filter(course => 
-                    enrollments[course.class] && enrollments[course.class].includes(studentId)
-                );
-                setEnrolledCourses(coursesForStudent);
+                enrollments = JSON.parse(storedEnrollments);
+            } else {
+                // Initialize if not present
+                const initialEnrollments: Enrollment = {};
+                defaultTeacherScheduleData.forEach((course, courseIndex) => {
+                    initialEnrollments[course.class] = [defaultStudentsData[0].id]; // Enroll the default student
+                });
+                localStorage.setItem('courseEnrollments', JSON.stringify(initialEnrollments));
+                enrollments = initialEnrollments;
+                window.dispatchEvent(new Event('storage'));
             }
+
+            const coursesForStudent = allCourses.filter(course =>
+                enrollments[course.class] && enrollments[course.class].includes(studentId)
+            );
+            setEnrolledCourses(coursesForStudent);
         }
     }, [allCourses]);
 
     const getTeacherForCourse = (courseName: string) => {
         if (courseName.includes('Calculus') || courseName.includes('Algebra')) {
-            return staffData.find(s => s.name.includes("Carter"))?.name || 'Unknown';
+            return staffData.find(s => s.name.includes("Ayushman"))?.name || 'Unknown';
         }
         if (courseName.includes('Statistics')) {
              return staffData.find(s => s.name.includes("Vance"))?.name || 'Unknown';
@@ -82,24 +94,32 @@ const StudentCoursesPage = () => {
                 <p className="text-muted-foreground">Here are the courses you are enrolled in this semester.</p>
             </div>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {enrolledCourses.map((course, index) => (
-                    <Card key={index} className="flex flex-col">
-                        <CardHeader>
-                            <CardTitle className="text-xl">{course.class}</CardTitle>
-                            <CardDescription>Taught by {getTeacherForCourse(course.class)}</CardDescription>
-                        </CardHeader>
-                        <CardContent className="flex-grow space-y-2">
-                             <div className="flex items-center text-sm text-muted-foreground">
-                                <Users className="h-4 w-4 mr-2" />
-                                <span>Location: {course.location}</span>
-                            </div>
-                            <div className="flex items-center text-sm text-muted-foreground">
-                                <Clock className="h-4 w-4 mr-2" />
-                                <span>Time: {course.time}</span>
-                            </div>
+                {enrolledCourses.length > 0 ? (
+                    enrolledCourses.map((course, index) => (
+                        <Card key={index} className="flex flex-col">
+                            <CardHeader>
+                                <CardTitle className="text-xl">{course.class}</CardTitle>
+                                <CardDescription>Taught by {getTeacherForCourse(course.class)}</CardDescription>
+                            </CardHeader>
+                            <CardContent className="flex-grow space-y-2">
+                                 <div className="flex items-center text-sm text-muted-foreground">
+                                    <Users className="h-4 w-4 mr-2" />
+                                    <span>Location: {course.location}</span>
+                                </div>
+                                <div className="flex items-center text-sm text-muted-foreground">
+                                    <Clock className="h-4 w-4 mr-2" />
+                                    <span>Time: {course.time}</span>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))
+                ) : (
+                    <Card className="md:col-span-2 lg:col-span-3">
+                        <CardContent className="pt-6">
+                            <p className="text-center text-muted-foreground">You are not enrolled in any courses yet.</p>
                         </CardContent>
                     </Card>
-                ))}
+                )}
             </div>
         </div>
     );
@@ -514,3 +534,5 @@ export default function CoursesPage() {
         </div>
     )
 }
+
+    
