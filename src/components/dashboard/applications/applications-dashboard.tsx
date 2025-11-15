@@ -43,6 +43,22 @@ interface TeacherApplication {
   status: 'Pending';
 }
 
+type ActivityLogItem = {
+    type: 'NEW_STUDENT' | 'NEW_TEACHER';
+    payload: {
+        name: string;
+    };
+    timestamp: string;
+}
+
+const logActivity = (item: ActivityLogItem) => {
+    const logString = localStorage.getItem('activityLog');
+    const log = logString ? JSON.parse(logString) : [];
+    log.push(item);
+    localStorage.setItem('activityLog', JSON.stringify(log));
+    window.dispatchEvent(new Event('storage'));
+}
+
 export function ApplicationsDashboard() {
   const { toast } = useToast();
   const [studentApps, setStudentApps] = useState<StudentApplication[]>([]);
@@ -109,7 +125,8 @@ export function ApplicationsDashboard() {
 
       const updatedStudents = [...currentStudents, newStudent];
       localStorage.setItem('studentsData', JSON.stringify(updatedStudents));
-      window.dispatchEvent(new Event('storage'));
+      
+      logActivity({ type: 'NEW_STUDENT', payload: { name: studentApp.name }, timestamp: new Date().toISOString() });
 
       // Remove from applications
       const updatedApps = studentApps.filter(a => a.id !== app.id);
@@ -138,7 +155,8 @@ export function ApplicationsDashboard() {
 
       const updatedStaff = [...currentStaff, newStaff];
       localStorage.setItem('staffData', JSON.stringify(updatedStaff));
-      window.dispatchEvent(new Event('storage'));
+      
+      logActivity({ type: 'NEW_TEACHER', payload: { name: teacherApp.name }, timestamp: new Date().toISOString() });
 
       // Remove from applications
       const updatedApps = teacherApps.filter(a => a.id !== app.id);

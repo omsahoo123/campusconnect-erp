@@ -5,17 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Users, GraduationCap, Briefcase, Activity } from "lucide-react";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from "@/components/ui/chart";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from "recharts";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { studentsData as defaultStudentsData, staffData as defaultStaffData } from "@/lib/data";
-
-const admissionsData = [
-    { month: "Jan", admissions: 186 },
-    { month: "Feb", admissions: 305 },
-    { month: "Mar", admissions: 237 },
-    { month: "Apr", admissions: 73 },
-    { month: "May", admissions: 209 },
-    { month: "Jun", admissions: 214 },
-];
+import { formatDistanceToNow } from "date-fns";
 
 const chartConfig: ChartConfig = {
     admissions: {
@@ -30,10 +22,36 @@ interface StudentApplication {
   status: 'Pending';
 }
 
+type ActivityLogItem = {
+    type: 'NEW_STUDENT' | 'NEW_TEACHER' | 'SYSTEM_START';
+    payload: {
+        name: string;
+    };
+    timestamp: string;
+}
+
+const getActivityIcon = (type: ActivityLogItem['type']) => {
+    switch (type) {
+        case 'NEW_STUDENT': return <Users className="h-4 w-4" />;
+        case 'NEW_TEACHER': return <Briefcase className="h-4 w-4" />;
+        default: return <Activity className="h-4 w-4" />;
+    }
+}
+
+const getActivityMessage = (item: ActivityLogItem) => {
+    switch (item.type) {
+        case 'NEW_STUDENT': return `New student <span class="font-medium">${item.payload.name}</span> was enrolled.`;
+        case 'NEW_TEACHER': return `New teacher <span class="font-medium">${item.payload.name}</span> was hired.`;
+        case 'SYSTEM_START': return `System started up successfully.`;
+        default: return 'An unknown activity occurred.';
+    }
+}
+
 export function AdminDashboard() {
   const [studentCount, setStudentCount] = useState(0);
   const [staffCount, setStaffCount] = useState(0);
   const [newAdmissionsCount, setNewAdmissionsCount] = useState(0);
+  const [activityLog, setActivityLog] = useState<ActivityLogItem[]>([]);
 
   const loadData = useCallback(() => {
     try {
@@ -49,12 +67,18 @@ export function AdminDashboard() {
         const storedStudentApps = localStorage.getItem('studentApplications');
         const studentApps: StudentApplication[] = storedStudentApps ? JSON.parse(storedStudentApps) : [];
         setNewAdmissionsCount(studentApps.filter(app => app.status === 'Pending').length);
+
+        const storedActivityLog = localStorage.getItem('activityLog');
+        const log = storedActivityLog ? JSON.parse(storedActivityLog) : [{ type: 'SYSTEM_START', payload: { name: 'System' }, timestamp: new Date().toISOString() }];
+        setActivityLog(log.slice().reverse()); // Show most recent first
+
       }
     } catch (error) {
       console.error("Failed to load data from localStorage", error);
       setStudentCount(defaultStudentsData.length);
       setStaffCount(defaultStaffData.length);
       setNewAdmissionsCount(0);
+      setActivityLog([]);
     }
   }, []);
 
@@ -62,7 +86,7 @@ export function AdminDashboard() {
     loadData();
 
     const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === 'studentsData' || event.key === 'staffData' || event.key === 'studentApplications') {
+      if (['studentsData', 'staffData', 'studentApplications', 'activityLog'].includes(event.key || '')) {
         loadData();
       }
     };
@@ -73,6 +97,28 @@ export function AdminDashboard() {
       window.removeEventListener('storage', handleStorageChange);
     };
   }, [loadData]);
+
+  const admissionsData = useMemo(() => {
+    const studentAdmissions = activityLog.filter(item => item.type === 'NEW_STUDENT');
+    const monthlyAdmissions: { [key: string]: number } = {};
+
+    studentAdmissions.forEach(item => {
+        const month = new Date(item.timestamp).toLocaleString('default', { month: 'short', year: '2-digit' });
+        monthlyAdmissions[month] = (monthlyAdmissions[month] || 0) + 1;
+    });
+
+    const last6Months = Array.from({ length: 6 }, (_, i) => {
+        const d = new Date();
+        d.setMonth(d.getMonth() - i);
+        return d.toLocaleString('default', { month: 'short', year: '2-digit' });
+    }).reverse();
+    
+    return last6Months.map(monthStr => ({
+        month: monthStr.split(' ')[0], // just 'Jan', 'Feb' etc.
+        admissions: monthlyAdmissions[monthStr] || 0
+    }));
+
+  }, [activityLog]);
 
 
   return (
@@ -162,34 +208,17 @@ export function AdminDashboard() {
                 <CardDescription>A log of recent system-wide events.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-                <div className="flex items-center gap-4">
-                    <div className="p-2 bg-muted rounded-full">
-                        <Users className="h-4 w-4" />
+                {activityLog.slice(0, 4).map((item, index) => (
+                     <div key={index} className="flex items-center gap-4">
+                        <div className="p-2 bg-muted rounded-full">
+                            {getActivityIcon(item.type)}
+                        </div>
+                        <p className="text-sm" dangerouslySetInnerHTML={{ __html: getActivityMessage(item) }}></p>
+                        <p className="text-sm text-muted-foreground ml-auto whitespace-nowrap">
+                            {formatDistanceToNow(new Date(item.timestamp), { addSuffix: true })}
+                        </p>
                     </div>
-                    <p className="text-sm">New student <span className="font-medium">Liam Smith</span> was enrolled.</p>
-                    <p className="text-sm text-muted-foreground ml-auto whitespace-nowrap">5m ago</p>
-                </div>
-                 <div className="flex items-center gap-4">
-                    <div className="p-2 bg-muted rounded-full">
-                        <Briefcase className="h-4 w-4" />
-                    </div>
-                    <p className="text-sm"><span className="font-medium">Dr. Reed</span> updated course materials.</p>
-                    <p className="text-sm text-muted-foreground ml-auto whitespace-nowrap">1h ago</p>
-                </div>
-                 <div className="flex items-center gap-4">
-                    <div className="p-2 bg-muted rounded-full">
-                        <GraduationCap className="h-4 w-4" />
-                    </div>
-                    <p className="text-sm">Financial report for May was generated.</p>
-                    <p className="text-sm text-muted-foreground ml-auto whitespace-nowrap">3h ago</p>
-                </div>
-                 <div className="flex items-center gap-4">
-                    <div className="p-2 bg-muted rounded-full">
-                        <Users className="h-4 w-4" />
-                    </div>
-                    <p className="text-sm">New student <span className="font-medium">Olivia Brown</span> was enrolled.</p>
-                    <p className="text-sm text-muted-foreground ml-auto whitespace-nowrap">1d ago</p>
-                </div>
+                ))}
             </CardContent>
         </Card>
       </div>
