@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Mail, Phone, Calendar as CalendarIcon, ArrowLeft, Trash2, Plus } from "lucide-react";
-import { notFound, useRouter } from "next/navigation";
+import { notFound, useRouter, useParams } from "next/navigation";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -28,8 +28,10 @@ type StudentDeadlines = {
     [studentId: string]: Deadline[];
 }
 
-export default function StudentProfilePage({ params }: { params: { studentId: string } }) {
+export default function StudentProfilePage() {
   const router = useRouter();
+  const params = useParams<{ studentId: string }>();
+  const studentId = params.studentId;
   const { toast } = useToast();
   const [studentsData, setStudentsData] = useState<Student[]>([]);
   const [student, setStudent] = useState<Student | null | undefined>(undefined);
@@ -42,16 +44,16 @@ export default function StudentProfilePage({ params }: { params: { studentId: st
     const storedStudents = localStorage.getItem('studentsData');
     const data = storedStudents ? JSON.parse(storedStudents) : defaultStudentsData;
     setStudentsData(data);
-    const currentStudent = data.find((s: Student) => s.id === params.studentId);
+    const currentStudent = data.find((s: Student) => s.id === studentId);
     setStudent(currentStudent);
 
     const storedDeadlines = localStorage.getItem('studentDeadlines');
     if (storedDeadlines) {
         const allDeadlines: StudentDeadlines = JSON.parse(storedDeadlines);
-        setDeadlines(allDeadlines[params.studentId] || []);
+        setDeadlines(allDeadlines[studentId] || []);
     }
 
-  }, [params.studentId]);
+  }, [studentId]);
 
   const updateAllDeadlines = (newStudentDeadlines: StudentDeadlines) => {
     localStorage.setItem('studentDeadlines', JSON.stringify(newStudentDeadlines));
@@ -85,7 +87,7 @@ export default function StudentProfilePage({ params }: { params: { studentId: st
 
       const storedDeadlines = localStorage.getItem('studentDeadlines');
       const allDeadlines: StudentDeadlines = storedDeadlines ? JSON.parse(storedDeadlines) : {};
-      allDeadlines[params.studentId] = updatedDeadlines;
+      allDeadlines[studentId] = updatedDeadlines;
       updateAllDeadlines(allDeadlines);
 
       setNewDeadline({ course: "", dueDate: "" });
@@ -98,7 +100,7 @@ export default function StudentProfilePage({ params }: { params: { studentId: st
       
       const storedDeadlines = localStorage.getItem('studentDeadlines');
       const allDeadlines: StudentDeadlines = storedDeadlines ? JSON.parse(storedDeadlines) : {};
-      allDeadlines[params.studentId] = updatedDeadlines;
+      allDeadlines[studentId] = updatedDeadlines;
       updateAllDeadlines(allDeadlines);
 
       toast({ variant: 'destructive', title: 'Deadline Removed', description: 'The deadline has been removed.' });
