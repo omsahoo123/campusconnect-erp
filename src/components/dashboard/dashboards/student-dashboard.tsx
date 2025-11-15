@@ -8,7 +8,7 @@ import { holidays as defaultHolidays, studentsData } from "@/lib/data";
 import { useEffect, useState, useMemo } from "react";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { Calendar } from "@/components/ui/calendar";
-import { format } from 'date-fns';
+import { format, differenceInDays, parseISO } from 'date-fns';
 
 type Enrollment = {
     [courseName: string]: string[]; // student IDs
@@ -31,12 +31,23 @@ type Holiday = {
     name: string;
 };
 
+type Deadline = {
+    id: string;
+    course: string;
+    dueDate: string;
+}
+
+type StudentDeadlines = {
+    [studentId: string]: Deadline[];
+}
+
 export function StudentDashboard() {
     const { role } = useCurrentUser();
     const [enrolledCoursesCount, setEnrolledCoursesCount] = useState(0);
     const [overallAttendance, setOverallAttendance] = useState(0);
     const [studentAttendance, setStudentAttendance] = useState<{[date: string]: boolean}>({});
     const [holidays, setHolidays] = useState<Holiday[]>([]);
+    const [deadlines, setDeadlines] = useState<Deadline[]>([]);
 
     const studentProfile = useMemo(() => studentsData.find(s => s.email === 'student@campus.edu'), []);
 
@@ -48,11 +59,15 @@ export function StudentDashboard() {
             if (event.key === 'holidays') {
                 setHolidays(JSON.parse(event.newValue || '[]'));
             }
+             if (event.key === 'studentDeadlines' && studentProfile) {
+                const allDeadlines: StudentDeadlines = JSON.parse(event.newValue || '{}');
+                setDeadlines(allDeadlines[studentProfile.id] || []);
+            }
         };
 
         window.addEventListener('storage', handleStorageChange);
         return () => window.removeEventListener('storage', handleStorageChange);
-    }, []);
+    }, [studentProfile]);
 
 
     useEffect(() => {
@@ -60,6 +75,7 @@ export function StudentDashboard() {
             const studentId = studentProfile.id;
             const storedEnrollments = localStorage.getItem('courseEnrollments');
             const storedAttendance = localStorage.getItem('allAttendanceData');
+            const storedDeadlines = localStorage.getItem('studentDeadlines');
 
             // Calculate enrolled courses
             if (storedEnrollments) {
@@ -87,8 +103,6 @@ export function StudentDashboard() {
                             if (dailyRecord[studentId]) { // if present
                                 attendedClasses++;
                             }
-                            // We only care if the student was absent in ANY class that day
-                            // If they are marked present in one and absent in another, we'll count it as present for the calendar day.
                             if (studentRecords[date] === undefined || studentRecords[date] === false) {
                                 studentRecords[date] = dailyRecord[studentId];
                             }
@@ -105,11 +119,39 @@ export function StudentDashboard() {
             } else {
                  setOverallAttendance(100);
             }
+
+             // Load deadlines
+            if (storedDeadlines) {
+                const allDeadlines: StudentDeadlines = JSON.parse(storedDeadlines);
+                setDeadlines(allDeadlines[studentId] || []);
+            }
         }
     }, [role, studentProfile]);
 
 
     const holidayDates = useMemo(() => holidays.map(h => new Date(h.date)), [holidays]);
+    
+    const upcomingDeadlines = useMemo(() => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return deadlines
+            .filter(d => {
+                const dueDate = parseISO(d.dueDate);
+                return dueDate >= today;
+            })
+            .sort((a, b) => parseISO(a.dueDate).getTime() - parseISO(b.dueDate).getTime());
+    }, [deadlines]);
+    
+    const deadlinesInNext7Days = useMemo(() => {
+        const today = new Date();
+        const nextWeek = new Date();
+        nextWeek.setDate(today.getDate() + 7);
+        return upcomingDeadlines.filter(d => {
+            const dueDate = parseISO(d.dueDate);
+            return dueDate <= nextWeek;
+        }).length;
+    }, [upcomingDeadlines]);
+
 
     const modifiers = {
         present: (date: Date) => studentAttendance[format(date, 'yyyy-MM-dd')] === true,
@@ -122,6 +164,13 @@ export function StudentDashboard() {
         absent: { backgroundColor: 'hsl(var(--destructive) / 0.2)', color: 'hsl(var(--destructive))' },
         holiday: { backgroundColor: 'hsl(var(--accent))', color: 'hsl(var(--accent-foreground))' },
     };
+
+    const getRemainingDays = (dueDate: string) => {
+        const remaining = differenceInDays(parseISO(dueDate), new Date());
+        if (remaining < 0) return 'Overdue';
+        if (remaining === 0) return 'Due today';
+        return `${remaining} day${remaining > 1 ? 's' : ''} remaining`;
+    }
 
 
   return (
@@ -157,8 +206,8 @@ export function StudentDashboard() {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">2</div>
-            <p className="text-xs text-muted-foreground">in the next 7 days</p>
+            <div className="text-2xl font-bold">{upcomingDeadlines.length}</div>
+            <p className="text-xs text-muted-foreground">{deadlinesInNext7Days} in the next 7 days</p>
           </CardContent>
         </Card>
         <Card>
@@ -197,35 +246,22 @@ export function StudentDashboard() {
             <CardTitle>Upcoming Deadlines</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-             <div className="flex items-start gap-4">
-                <div className="p-2 bg-muted rounded-full mt-1">
-                    <Clock className="h-4 w-4 text-primary" />
-                </div>
-                <div>
-                    <p className="text-sm font-medium">Physics Lab Report</p>
-                    <p className="text-sm text-muted-foreground">Due: 25th July, 2024</p>
-                    <p className="text-xs text-amber-600">3 days remaining</p>
-                </div>
-            </div>
-            <div className="flex items-start gap-4">
-                <div className="p-2 bg-muted rounded-full mt-1">
-                    <Clock className="h-4 w-4 text-primary" />
-                </div>
-                <div>
-                    <p className="text-sm font-medium">History Essay Submission</p>
-                    <p className="text-sm text-muted-foreground">Due: 28th July, 2024</p>
-                    <p className="text-xs text-amber-600">6 days remaining</p>
-                </div>
-            </div>
-             <div className="flex items-start gap-4">
-                <div className="p-2 bg-muted rounded-full mt-1">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                </div>
-                <div>
-                    <p className="text-sm font-medium text-muted-foreground line-through">Math Assignment 3</p>
-                    <p className="text-sm text-muted-foreground">Submitted on 20th July</p>
-                </div>
-            </div>
+             {upcomingDeadlines.length > 0 ? (
+                upcomingDeadlines.map(deadline => (
+                    <div key={deadline.id} className="flex items-start gap-4">
+                        <div className="p-2 bg-muted rounded-full mt-1">
+                            <Clock className="h-4 w-4 text-primary" />
+                        </div>
+                        <div>
+                            <p className="text-sm font-medium">{deadline.course}</p>
+                            <p className="text-sm text-muted-foreground">Due: {format(parseISO(deadline.dueDate), 'do MMMM, yyyy')}</p>
+                            <p className="text-xs text-amber-600">{getRemainingDays(deadline.dueDate)}</p>
+                        </div>
+                    </div>
+                ))
+             ) : (
+                <div className="text-center text-muted-foreground py-8">No upcoming deadlines.</div>
+             )}
           </CardContent>
         </Card>
       </div>
