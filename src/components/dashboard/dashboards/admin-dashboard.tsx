@@ -1,9 +1,12 @@
+
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, GraduationCap, Briefcase, Activity } from "lucide-react";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from "@/components/ui/chart";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from "recharts";
+import { useState, useEffect, useCallback } from "react";
+import { studentsData as defaultStudentsData, staffData as defaultStaffData } from "@/lib/data";
 
 const admissionsData = [
     { month: "Jan", admissions: 186 },
@@ -22,6 +25,44 @@ const chartConfig: ChartConfig = {
 };
 
 export function AdminDashboard() {
+  const [studentCount, setStudentCount] = useState(0);
+  const [staffCount, setStaffCount] = useState(0);
+
+  const loadData = useCallback(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        const storedStudents = localStorage.getItem('studentsData');
+        const students = storedStudents ? JSON.parse(storedStudents) : defaultStudentsData;
+        setStudentCount(students.length);
+
+        const storedStaff = localStorage.getItem('staffData');
+        const staff = storedStaff ? JSON.parse(storedStaff) : defaultStaffData;
+        setStaffCount(staff.length);
+      }
+    } catch (error) {
+      console.error("Failed to load data from localStorage", error);
+      setStudentCount(defaultStudentsData.length);
+      setStaffCount(defaultStaffData.length);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadData();
+
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === 'studentsData' || event.key === 'staffData') {
+        loadData();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [loadData]);
+
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -35,8 +76,8 @@ export function AdminDashboard() {
             <GraduationCap className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">1,254</div>
-            <p className="text-xs text-muted-foreground">+20.1% from last month</p>
+            <div className="text-2xl font-bold">{studentCount}</div>
+            <p className="text-xs text-muted-foreground">Currently enrolled</p>
           </CardContent>
         </Card>
         <Card>
@@ -45,8 +86,8 @@ export function AdminDashboard() {
             <Briefcase className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">152</div>
-            <p className="text-xs text-muted-foreground">+5 from last month</p>
+            <div className="text-2xl font-bold">{staffCount}</div>
+            <p className="text-xs text-muted-foreground">Active and on leave</p>
           </CardContent>
         </Card>
         <Card>
