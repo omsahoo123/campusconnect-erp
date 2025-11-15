@@ -2,7 +2,7 @@
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookOpen, CalendarCheck, Clock, CircleDollarSign, CheckCircle } from "lucide-react";
+import { BookOpen, CalendarCheck, Clock, CircleDollarSign, CheckCircle, File as FileIcon } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { holidays as defaultHolidays, studentsData } from "@/lib/data";
 import { useEffect, useState, useMemo } from "react";
@@ -33,8 +33,11 @@ type Holiday = {
 
 type Deadline = {
     id: string;
-    course: string;
+    subject: string;
+    title: string;
     dueDate: string;
+    document?: string;
+    documentName?: string;
 }
 
 type StudentDeadlines = {
@@ -252,11 +255,18 @@ export function StudentDashboard() {
                         <div className="p-2 bg-muted rounded-full mt-1">
                             <Clock className="h-4 w-4 text-primary" />
                         </div>
-                        <div>
-                            <p className="text-sm font-medium">{deadline.course}</p>
+                        <div className="flex-1">
+                            <p className="text-sm font-semibold">{deadline.subject}</p>
+                            <p className="text-sm font-medium">{deadline.title}</p>
                             <p className="text-sm text-muted-foreground">Due: {format(parseISO(deadline.dueDate), 'do MMMM, yyyy')}</p>
                             <p className="text-xs text-amber-600">{getRemainingDays(deadline.dueDate)}</p>
                         </div>
+                         {deadline.document && (
+                            <button onClick={() => window.open(deadline.document)} className="text-primary hover:underline flex items-center gap-1 text-sm">
+                                <FileIcon className="h-4 w-4" />
+                                <span>{deadline.documentName}</span>
+                            </button>
+                        )}
                     </div>
                 ))
              ) : (
@@ -268,3 +278,5 @@ export function StudentDashboard() {
     </div>
   );
 }
+
+    

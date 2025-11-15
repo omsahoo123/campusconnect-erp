@@ -2,11 +2,11 @@
 "use client"
 
 import { useState, useEffect } from "react";
-import { studentsData as defaultStudentsData } from "@/lib/data";
+import { studentsData as defaultStudentsData, teacherScheduleData } from "@/lib/data";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Mail, Phone, Calendar as CalendarIcon, ArrowLeft, Trash2, Plus } from "lucide-react";
+import { Mail, Phone, Calendar as CalendarIcon, ArrowLeft, Trash2, Plus, File } from "lucide-react";
 import { notFound, useRouter, useParams } from "next/navigation";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { Button } from "@/components/ui/button";
@@ -20,8 +20,11 @@ import { format, parseISO } from "date-fns";
 
 type Deadline = {
     id: string;
-    course: string;
+    subject: string;
+    title: string;
     dueDate: string;
+    document?: string; // as data URI
+    documentName?: string;
 }
 
 type StudentDeadlines = {
@@ -37,7 +40,7 @@ export default function StudentProfilePage() {
   const [student, setStudent] = useState<Student | null | undefined>(undefined);
   const [isEditing, setIsEditing] = useState(false);
   const [deadlines, setDeadlines] = useState<Deadline[]>([]);
-  const [newDeadline, setNewDeadline] = useState({ course: "", dueDate: "" });
+  const [newDeadline, setNewDeadline] = useState<{ subject: string; title: string; dueDate: string; document?: File | null; documentName?: string; }>({ subject: "", title: "", dueDate: "" });
 
 
   useEffect(() => {
@@ -76,22 +79,43 @@ export default function StudentProfilePage() {
   };
   
   const handleAddDeadline = () => {
-      if (!newDeadline.course || !newDeadline.dueDate) {
-          toast({ variant: 'destructive', title: 'Missing Info', description: 'Please fill out both deadline title and due date.' });
+      if (!newDeadline.subject || !newDeadline.title || !newDeadline.dueDate) {
+          toast({ variant: 'destructive', title: 'Missing Info', description: 'Please fill out subject, title, and due date.' });
           return;
       }
       const newId = `DLN-${Date.now()}`;
-      const deadlineToAdd: Deadline = { ...newDeadline, id: newId };
-      const updatedDeadlines = [...deadlines, deadlineToAdd];
-      setDeadlines(updatedDeadlines);
 
-      const storedDeadlines = localStorage.getItem('studentDeadlines');
-      const allDeadlines: StudentDeadlines = storedDeadlines ? JSON.parse(storedDeadlines) : {};
-      allDeadlines[studentId] = updatedDeadlines;
-      updateAllDeadlines(allDeadlines);
+      const addDeadlineWithFile = (fileData?: string) => {
+        const deadlineToAdd: Deadline = { 
+            id: newId, 
+            subject: newDeadline.subject,
+            title: newDeadline.title,
+            dueDate: newDeadline.dueDate,
+            document: fileData,
+            documentName: newDeadline.document?.name
+        };
 
-      setNewDeadline({ course: "", dueDate: "" });
-      toast({ title: 'Deadline Added', description: 'New deadline has been added for the student.' });
+        const updatedDeadlines = [...deadlines, deadlineToAdd];
+        setDeadlines(updatedDeadlines);
+
+        const storedDeadlines = localStorage.getItem('studentDeadlines');
+        const allDeadlines: StudentDeadlines = storedDeadlines ? JSON.parse(storedDeadlines) : {};
+        allDeadlines[studentId] = updatedDeadlines;
+        updateAllDeadlines(allDeadlines);
+
+        setNewDeadline({ subject: "", title: "", dueDate: "" });
+        toast({ title: 'Deadline Added', description: 'New deadline has been added for the student.' });
+      }
+
+      if (newDeadline.document) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+              addDeadlineWithFile(e.target?.result as string);
+          };
+          reader.readAsDataURL(newDeadline.document);
+      } else {
+          addDeadlineWithFile();
+      }
   }
   
   const handleDeleteDeadline = (deadlineId: string) => {
@@ -212,32 +236,59 @@ export default function StudentProfilePage() {
                 <CardTitle>Upcoming Deadlines</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-                <div className="flex flex-col sm:flex-row gap-2">
+                <div className="grid sm:grid-cols-2 gap-4">
+                    <Select value={newDeadline.subject} onValueChange={(value) => setNewDeadline({...newDeadline, subject: value})}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Select Subject" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {teacherScheduleData.map(course => (
+                                <SelectItem key={course.class} value={course.class}>{course.class}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                     <Input 
                         placeholder="Assignment Title"
-                        value={newDeadline.course}
-                        onChange={(e) => setNewDeadline({...newDeadline, course: e.target.value})}
+                        value={newDeadline.title}
+                        onChange={(e) => setNewDeadline({...newDeadline, title: e.target.value})}
                     />
                     <Input 
                         type="date"
                         value={newDeadline.dueDate}
                         onChange={(e) => setNewDeadline({...newDeadline, dueDate: e.target.value})}
                     />
-                    <Button onClick={handleAddDeadline} className="sm:w-auto w-full">
-                        <Plus className="h-4 w-4 mr-2" /> Add Deadline
-                    </Button>
+                    <div className="space-y-2">
+                        <Label htmlFor="document-upload" className="text-sm font-normal text-muted-foreground">Question Document (Optional)</Label>
+                        <Input 
+                            id="document-upload"
+                            type="file"
+                            onChange={(e) => setNewDeadline({...newDeadline, document: e.target.files ? e.target.files[0] : null})}
+                        />
+                    </div>
                 </div>
+                 <Button onClick={handleAddDeadline} className="w-full sm:w-auto">
+                    <Plus className="h-4 w-4 mr-2" /> Add Deadline
+                </Button>
                  <div className="space-y-2 pt-4">
                     {deadlines.length > 0 ? (
                         deadlines.map(deadline => (
-                            <div key={deadline.id} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
+                            <div key={deadline.id} className="flex items-center justify-between p-3 rounded-md bg-muted/50">
                                 <div>
-                                    <p className="font-medium">{deadline.course}</p>
+                                    <p className="font-semibold">{deadline.subject}</p>
+                                    <p className="font-medium text-sm">{deadline.title}</p>
                                     <p className="text-sm text-muted-foreground">Due: {format(parseISO(deadline.dueDate), 'do MMMM, yyyy')}</p>
                                 </div>
-                                <Button variant="ghost" size="icon" onClick={() => handleDeleteDeadline(deadline.id)}>
-                                    <Trash2 className="h-4 w-4 text-destructive" />
-                                </Button>
+                                <div className="flex items-center gap-2">
+                                     {deadline.document && (
+                                        <Button variant="outline" size="sm" onClick={() => window.open(deadline.document, '_blank')}>
+                                            <File className="h-4 w-4 mr-2" />
+                                            View Doc
+                                        </Button>
+                                    )}
+                                    <Button variant="ghost" size="icon" onClick={() => handleDeleteDeadline(deadline.id)}>
+                                        <Trash2 className="h-4 w-4 text-destructive" />
+                                    </Button>
+                                </div>
                             </div>
                         ))
                     ) : (
@@ -250,3 +301,5 @@ export default function StudentProfilePage() {
     </div>
   );
 }
+
+    
