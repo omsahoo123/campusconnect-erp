@@ -68,4 +68,7 @@ export const teacherScheduleData = [
     { time: '14:00 - 15:30', class: 'Advanced Statistics', location: 'Lab 5' },
 ];
 
-    
+export const holidays = [
+    { date: '2024-07-04', name: 'Independence Day' },
+    { date: '2024-09-02', name: 'Labor Day' },
+];

@@ -4,42 +4,110 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookOpen, CalendarCheck, Clock, CircleDollarSign, CheckCircle } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import { studentAttendanceData } from "@/lib/data";
-import { useEffect, useState } from "react";
+import { holidays, studentsData } from "@/lib/data";
+import { useEffect, useState, useMemo } from "react";
 import { useCurrentUser } from "@/hooks/use-current-user";
-import { studentsData } from "@/lib/data";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from 'date-fns';
 
 type Enrollment = {
     [courseName: string]: string[]; // student IDs
 }
 
+interface AttendanceRecord {
+    [studentId: string]: boolean;
+}
+
+type DailyAttendance = {
+    [date: string]: AttendanceRecord; // date is YYYY-MM-DD
+}
+
+type CourseAttendance = {
+    [courseName: string]: DailyAttendance;
+}
+
 export function StudentDashboard() {
     const { role } = useCurrentUser();
     const [enrolledCoursesCount, setEnrolledCoursesCount] = useState(0);
+    const [overallAttendance, setOverallAttendance] = useState(0);
+    const [studentAttendance, setStudentAttendance] = useState<{[date: string]: boolean}>({});
+
+    const studentProfile = useMemo(() => studentsData.find(s => s.email === 'student@campus.edu'), []);
+
 
     useEffect(() => {
-        if (role === 'student') {
-            const studentProfile = studentsData.find(s => s.email === 'student@campus.edu');
-            if (studentProfile) {
-                const studentId = studentProfile.id;
-                const storedEnrollments = localStorage.getItem('courseEnrollments');
-                if (storedEnrollments) {
-                    const enrollments: Enrollment = JSON.parse(storedEnrollments);
-                    const count = Object.keys(enrollments).filter(courseName => 
-                        enrollments[courseName].includes(studentId)
-                    ).length;
-                    setEnrolledCoursesCount(count);
+        if (role === 'student' && studentProfile) {
+            const studentId = studentProfile.id;
+            const storedEnrollments = localStorage.getItem('courseEnrollments');
+            const storedAttendance = localStorage.getItem('allAttendanceData');
+
+            // Calculate enrolled courses
+            if (storedEnrollments) {
+                const enrollments: Enrollment = JSON.parse(storedEnrollments);
+                const count = Object.keys(enrollments).filter(courseName => 
+                    enrollments[courseName].includes(studentId)
+                ).length;
+                setEnrolledCoursesCount(count);
+            }
+
+            // Calculate attendance
+            if (storedAttendance) {
+                const allAttendance: CourseAttendance = JSON.parse(storedAttendance);
+                const studentRecords: {[date: string]: boolean} = {};
+                let totalClasses = 0;
+                let attendedClasses = 0;
+
+                for (const courseName in allAttendance) {
+                    const courseAttendance = allAttendance[courseName];
+                    for (const date in courseAttendance) {
+                        const dailyRecord = courseAttendance[date];
+                        if (dailyRecord.hasOwnProperty(studentId)) {
+                             // This student was in this class on this day
+                            totalClasses++;
+                            if (dailyRecord[studentId]) { // if present
+                                attendedClasses++;
+                            }
+                            // We only care if the student was absent in ANY class that day
+                            // If they are marked present in one and absent in another, we'll count it as present for the calendar day.
+                            if (studentRecords[date] === undefined || studentRecords[date] === false) {
+                                studentRecords[date] = dailyRecord[studentId];
+                            }
+                        }
+                    }
                 }
+                
+                setStudentAttendance(studentRecords);
+                if (totalClasses > 0) {
+                    setOverallAttendance(Math.round((attendedClasses / totalClasses) * 100));
+                } else {
+                    setOverallAttendance(100);
+                }
+            } else {
+                 setOverallAttendance(100);
             }
         }
-    }, [role]);
+    }, [role, studentProfile]);
 
-    const overallAttendance = studentAttendanceData.reduce((acc, curr) => acc + curr.attended, 0) / studentAttendanceData.reduce((acc, curr) => acc + curr.total, 0) * 100;
+
+    const holidayDates = useMemo(() => holidays.map(h => new Date(h.date)), []);
+
+    const modifiers = {
+        present: (date: Date) => studentAttendance[format(date, 'yyyy-MM-dd')] === true,
+        absent: (date: Date) => studentAttendance[format(date, 'yyyy-MM-dd')] === false,
+        holiday: holidayDates,
+    };
+
+    const modifiersStyles = {
+        present: { backgroundColor: 'hsl(var(--primary) / 0.2)', color: 'hsl(var(--primary))' },
+        absent: { backgroundColor: 'hsl(var(--destructive) / 0.2)', color: 'hsl(var(--destructive))' },
+        holiday: { backgroundColor: 'hsl(var(--accent))', color: 'hsl(var(--accent-foreground))' },
+    };
+
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-bold tracking-tight font-headline">Welcome, Alex!</h1>
+        <h1 className="text-2xl font-bold tracking-tight font-headline">Welcome, {studentProfile?.name.split(' ')[0]}!</h1>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -59,7 +127,7 @@ export function StudentDashboard() {
             <CalendarCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{overallAttendance.toFixed(1)}%</div>
+            <div className="text-2xl font-bold">{overallAttendance}%</div>
             <Progress value={overallAttendance} className="h-2 mt-2" />
           </CardContent>
         </Card>
@@ -90,23 +158,17 @@ export function StudentDashboard() {
        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         <Card className="col-span-1 lg:col-span-4">
           <CardHeader>
-            <CardTitle>Attendance Details</CardTitle>
-            <CardDescription>Your attendance for each subject.</CardDescription>
+            <CardTitle>Attendance Calendar</CardTitle>
+            <CardDescription>Your attendance for the current month.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {studentAttendanceData.map(subject => {
-                const percentage = (subject.attended / subject.total) * 100;
-                return (
-                    <div key={subject.subject}>
-                        <div className="flex justify-between items-center mb-1">
-                            <p className="text-sm font-medium">{subject.subject}</p>
-                            <p className={`text-sm font-medium ${percentage < 75 ? 'text-destructive' : 'text-foreground'}`}>{percentage.toFixed(0)}%</p>
-                        </div>
-                        <Progress value={percentage} className="h-2" />
-                        <p className="text-xs text-muted-foreground mt-1">Attended {subject.attended} of {subject.total} classes</p>
-                    </div>
-                )
-            })}
+          <CardContent className="flex justify-center">
+            <Calendar
+                mode="single"
+                selected={new Date()}
+                modifiers={modifiers}
+                modifiersStyles={modifiersStyles}
+                className="rounded-md border p-0"
+            />
           </CardContent>
         </Card>
 
