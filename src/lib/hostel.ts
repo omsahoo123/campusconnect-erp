@@ -6,18 +6,40 @@ export type Room = {
   occupants: string[]; // student IDs
 };
 
+export type Hostel = {
+  id: string;
+  name: string;
+  gender: 'Male' | 'Female';
+  rooms: Room[];
+}
+
 // Simplified default rooms for demonstration
-export const defaultRooms: Room[] = [
-  { id: 'A-101', floor: 1, capacity: 2, occupants: ['STU001'] },
-  { id: 'A-102', floor: 1, capacity: 2, occupants: [] },
-  { id: 'A-103', floor: 1, capacity: 2, occupants: [] },
-  { id: 'B-201', floor: 2, capacity: 2, occupants: [] },
-  { id: 'B-202', floor: 2, capacity: 2, occupants: [] },
-  { id: 'C-301', floor: 3, capacity: 3, occupants: [] },
+export const defaultHostels: Hostel[] = [
+  {
+    id: "H01",
+    name: "St. Patrick Hostel",
+    gender: "Male",
+    rooms: [
+      { id: 'A-101', floor: 1, capacity: 2, occupants: ['STU001'] },
+      { id: 'A-102', floor: 1, capacity: 2, occupants: ['STU003'] },
+      { id: 'B-201', floor: 2, capacity: 2, occupants: [] },
+    ]
+  },
+  {
+    id: "H02",
+    name: "St. Teresa Hostel",
+    gender: "Female",
+    rooms: [
+      { id: 'A-101', floor: 1, capacity: 2, occupants: ['STU002'] },
+      { id: 'A-102', floor: 1, capacity: 2, occupants: [] },
+      { id: 'B-201', floor: 2, capacity: 2, occupants: ['STU004'] },
+    ]
+  }
 ];
 
+
 // This is now derived from defaultRooms occupants
-export const defaultHostelStudents: string[] = ['STU001'];
+export const defaultHostelStudents: string[] = ['STU001', 'STU002', 'STU003', 'STU004'];
 
 // This will now be calculated from the rooms data, but we can keep it for other components if needed.
 export const defaultRoomStatusData = [

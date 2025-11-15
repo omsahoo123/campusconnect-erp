@@ -30,12 +30,17 @@ export const userProfiles: Record<UserRole, { name: string; email: string; avata
 };
 
 export const studentsData = [
-  { id: "STU001", name: "Om Sahoo", email: "osahoo9178@gmail.com", phone: "(123) 456-7890", joinDate: "2023-01-15", status: "Active" as const }
+  { id: "STU001", name: "Om Sahoo", gender: "male", email: "osahoo9178@gmail.com", phone: "(123) 456-7890", joinDate: "2023-01-15", status: "Active" as const },
+  { id: "STU002", name: "Jane Doe", gender: "female", email: "jane.doe@campus.edu", phone: "(123) 555-0102", joinDate: "2023-02-01", status: "Active" as const },
+  { id: "STU003", name: "John Smith", gender: "male", email: "john.smith@campus.edu", phone: "(123) 555-0103", joinDate: "2023-01-20", status: "Active" as const },
+  { id: "STU004", name: "Emily White", gender: "female", email: "emily.white@campus.edu", phone: "(123) 555-0104", joinDate: "2023-03-10", status: "Active" as const }
 ];
 
 export const staffData = [
-  { id: "TCH01", name: "Ayushman Patra", department: "Computer Science", email: "osahoo225@gmail.com", status: "Active" as const }
+  { id: "TCH01", name: "Ayushman Patra", department: "Computer Science", email: "osahoo225@gmail.com", status: "Active" as const },
+  { id: "TCH02", name: "Emily Vance", department: "Statistics", email: "e.vance@campus.edu", status: "Active" as const }
 ];
+
 
 export const studentAttendanceData = [
   { subject: 'Math', total: 20, attended: 18 },

@@ -6,9 +6,8 @@ import { Home, Users, Bed, Utensils } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, XAxis, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from "@/components/ui/chart";
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { defaultRooms, defaultHostelStudents, defaultMessData, type Room } from "@/lib/hostel";
+import { defaultHostels, defaultMessData, type Hostel } from "@/lib/hostel";
 import { useToast } from "@/hooks/use-toast";
-import { studentsData as allStudentsData } from "@/lib/data";
 
 const chartConfig: ChartConfig = {
   occupied: {
@@ -27,15 +26,15 @@ type MessData = {
 }
 
 export function HostelDashboard() {
-  const [rooms, setRooms] = useState<Room[]>([]);
+  const [hostels, setHostels] = useState<Hostel[]>([]);
   const [messData, setMessData] = useState<MessData>({ status: 'Inactive', nextMeal: 'N/A' });
   const { toast } = useToast();
 
   const loadData = useCallback(() => {
     try {
       if (typeof window !== 'undefined') {
-        const storedRooms = localStorage.getItem('hostelRooms');
-        setRooms(storedRooms ? JSON.parse(storedRooms) : defaultRooms);
+        const storedHostels = localStorage.getItem('hostelsData');
+        setHostels(storedHostels ? JSON.parse(storedHostels) : defaultHostels);
         
         const storedMessData = localStorage.getItem('hostelMessData');
         setMessData(storedMessData ? JSON.parse(storedMessData) : defaultMessData);
@@ -55,8 +54,8 @@ export function HostelDashboard() {
     loadData();
 
     // Initialize if not present
-    if (!localStorage.getItem('hostelRooms')) {
-        localStorage.setItem('hostelRooms', JSON.stringify(defaultRooms));
+    if (!localStorage.getItem('hostelsData')) {
+        localStorage.setItem('hostelsData', JSON.stringify(defaultHostels));
     }
     if (!localStorage.getItem('hostelMessData')) {
         localStorage.setItem('hostelMessData', JSON.stringify(defaultMessData));
@@ -64,7 +63,7 @@ export function HostelDashboard() {
 
 
     const handleStorageChange = (event: StorageEvent) => {
-      if (['hostelRooms', 'hostelMessData'].includes(event.key || '')) {
+      if (['hostelsData', 'hostelMessData'].includes(event.key || '')) {
         loadData();
       }
     };
@@ -77,24 +76,26 @@ export function HostelDashboard() {
 
 
   const { totalRooms, occupiedRooms, totalCapacity, hostelStudentCount } = useMemo(() => {
-    const totalCap = rooms.reduce((acc, room) => acc + room.capacity, 0);
-    const occupiedCount = rooms.reduce((acc, room) => acc + room.occupants.length, 0);
+    const allRooms = hostels.flatMap(h => h.rooms);
+    const totalCap = allRooms.reduce((acc, room) => acc + room.capacity, 0);
+    const occupiedCount = allRooms.reduce((acc, room) => acc + room.occupants.length, 0);
     
-    // Get unique student IDs from all rooms
-    const studentIds = new Set(rooms.flatMap(room => room.occupants));
+    // Get unique student IDs from all rooms across all hostels
+    const studentIds = new Set(allRooms.flatMap(room => room.occupants));
 
     return { 
-        totalRooms: rooms.length,
-        occupiedRooms: rooms.filter(r => r.occupants.length > 0).length,
+        totalRooms: allRooms.length,
+        occupiedRooms: allRooms.filter(r => r.occupants.length > 0).length,
         totalCapacity: totalCap,
         hostelStudentCount: studentIds.size,
     };
-  }, [rooms]);
+  }, [hostels]);
 
   const chartData = useMemo(() => {
-    const floors = [...new Set(rooms.map(r => r.floor))];
+    const allRooms = hostels.flatMap(h => h.rooms);
+    const floors = [...new Set(allRooms.map(r => r.floor))].sort((a, b) => a - b);
     return floors.map(floorNum => {
-        const roomsOnFloor = rooms.filter(r => r.floor === floorNum);
+        const roomsOnFloor = allRooms.filter(r => r.floor === floorNum);
         const occupiedCount = roomsOnFloor.reduce((acc, room) => acc + room.occupants.length, 0);
         const totalCapacityOnFloor = roomsOnFloor.reduce((acc, room) => acc + room.capacity, 0);
         return {
@@ -103,7 +104,7 @@ export function HostelDashboard() {
             available: totalCapacityOnFloor - occupiedCount,
         }
     });
-  }, [rooms]);
+  }, [hostels]);
 
   return (
     <div className="space-y-6">
