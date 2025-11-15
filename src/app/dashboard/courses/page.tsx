@@ -457,7 +457,7 @@ const TeacherCoursesPage = () => {
                                                                 {getStudentGrade(studentId, selectedCourse.class)}
                                                             </Button>
                                                         </DropdownMenuTrigger>
-                                                        <DropdownMenuContent>
+                                                        <DropdownMenuContent align="end">
                                                             {gradeOptions.map(grade => (
                                                                 <DropdownMenuItem key={grade} onSelect={() => handleGradeChange(studentId, selectedCourse.class, grade)}>
                                                                     {grade}
