@@ -48,33 +48,34 @@ type Enrollment = {
 const StudentCoursesPage = () => {
     const [enrolledCourses, setEnrolledCourses] = useState<Course[]>([]);
     const [allCourses] = useState<Course[]>(defaultTeacherScheduleData);
+    const { role } = useCurrentUser();
 
     useEffect(() => {
-        const studentProfile = studentsData.find(s => s.email === 'osahoo9178@gmail.com');
-        if (studentProfile) {
-            const studentId = studentProfile.id;
-            let enrollments: Enrollment = {};
+        if (role === 'student') {
+            const studentProfile = studentsData.find(s => s.email === 'osahoo9178@gmail.com');
+            if (studentProfile) {
+                const studentId = studentProfile.id;
 
-            const storedEnrollments = localStorage.getItem('courseEnrollments');
-            if (storedEnrollments) {
-                enrollments = JSON.parse(storedEnrollments);
-            } else {
-                // Initialize if not present
-                const initialEnrollments: Enrollment = {};
-                defaultTeacherScheduleData.forEach((course, courseIndex) => {
-                    initialEnrollments[course.class] = [defaultStudentsData[0].id]; // Enroll the default student
-                });
-                localStorage.setItem('courseEnrollments', JSON.stringify(initialEnrollments));
-                enrollments = initialEnrollments;
-                window.dispatchEvent(new Event('storage'));
+                let allGrades: StudentGradesData = {};
+                const storedGrades = localStorage.getItem('studentGrades');
+                if (storedGrades) {
+                    allGrades = JSON.parse(storedGrades);
+                } else {
+                    localStorage.setItem('studentGrades', JSON.stringify(defaultStudentGradesData));
+                    allGrades = defaultStudentGradesData;
+                    window.dispatchEvent(new Event('storage'));
+                }
+
+                const studentGradeEntries = allGrades[studentId] || [];
+                const enrolledCourseNames = studentGradeEntries.map(g => g.course);
+                
+                const coursesForStudent = allCourses.filter(course =>
+                    enrolledCourseNames.includes(course.class)
+                );
+                setEnrolledCourses(coursesForStudent);
             }
-
-            const coursesForStudent = allCourses.filter(course =>
-                enrollments[course.class] && enrollments[course.class].includes(studentId)
-            );
-            setEnrolledCourses(coursesForStudent);
         }
-    }, [allCourses]);
+    }, [allCourses, role]);
 
     const getTeacherForCourse = (courseName: string) => {
         if (courseName.includes('Calculus') || courseName.includes('Algebra')) {
@@ -534,5 +535,7 @@ export default function CoursesPage() {
         </div>
     )
 }
+
+    
 
     
