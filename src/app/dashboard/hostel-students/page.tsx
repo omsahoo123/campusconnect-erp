@@ -2,7 +2,7 @@
 "use client"
 
 import { useState, useEffect, useCallback, useMemo } from "react"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
@@ -46,18 +46,7 @@ export default function HostelStudentsPage() {
     setHostels(currentHostels)
     
     let students: Student[] = storedStudents ? JSON.parse(storedStudents) : defaultStudentsData;
-    
-    // De-duplicate students to prevent key errors
-    const uniqueStudentIds = new Set<string>();
-    const uniqueStudents = students.filter(student => {
-        if (uniqueStudentIds.has(student.id)) {
-            return false;
-        }
-        uniqueStudentIds.add(student.id);
-        return true;
-    });
-
-    setAllStudents(uniqueStudents);
+    setAllStudents(students);
   }, [])
 
   useEffect(() => {
