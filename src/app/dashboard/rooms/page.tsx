@@ -151,94 +151,6 @@ export default function RoomsPage() {
   const maleHostels = hostels.filter(h => h.gender === 'Male');
   const femaleHostels = hostels.filter(h => h.gender === 'Female');
 
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Room Management</h1>
-        <p className="text-muted-foreground">View and manage hostel room assignments.</p>
-      </div>
-      
-      <Tabs defaultValue="boys" className="w-full" onValueChange={(value) => handleTabChange(value === 'boys' ? 'Male' : 'Female')}>
-          <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="boys">Boys' Hostels</TabsTrigger>
-              <TabsTrigger value="girls">Girls' Hostels</TabsTrigger>
-          </TabsList>
-          <TabsContent value="boys">
-              {renderHostelContent(maleHostels)}
-          </TabsContent>
-          <TabsContent value="girls">
-              {renderHostelContent(femaleHostels)}
-          </TabsContent>
-      </Tabs>
-      
-      <Dialog onOpenChange={(isOpen) => !isOpen && setSelectedRoom(null)}>
-        <DialogContent className="sm:max-w-md">
-           {selectedRoom && (
-             <>
-                <DialogHeader>
-                    <DialogTitle>Manage Room {selectedRoom.id}</DialogTitle>
-                    <DialogDescription>
-                        Assign or remove students from this room. Capacity: {selectedRoom.occupants.length}/{selectedRoom.capacity}
-                    </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                    <div>
-                        <h4 className="font-medium text-sm mb-2">Occupants</h4>
-                        <div className="space-y-2">
-                           {selectedRoom.occupants.length > 0 ? (
-                                selectedRoom.occupants.map(studentId => (
-                                    <div key={studentId} className="flex items-center justify-between p-2 bg-muted/50 rounded-md">
-                                        <span className="text-sm">{getStudentName(studentId)}</span>
-                                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveStudent(studentId)}>
-                                            <X className="h-4 w-4 text-destructive" />
-                                        </Button>
-                                    </div>
-                                ))
-                           ) : (
-                                <p className="text-sm text-muted-foreground text-center py-2">This room is vacant.</p>
-                           )}
-                        </div>
-                    </div>
-                    {selectedRoom.occupants.length < selectedRoom.capacity && (
-                        <div>
-                             <h4 className="font-medium text-sm mb-2">Assign Student</h4>
-                             <div className="flex gap-2">
-                                <Select value={studentToAdd} onValueChange={setStudentToAdd}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select a student" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {availableStudents.length > 0 ? (
-                                            availableStudents.map(student => (
-                                                <SelectItem key={student.id} value={student.id}>{student.name}</SelectItem>
-                                            ))
-                                        ) : (
-                                            <div className="p-4 text-sm text-muted-foreground">No unassigned students.</div>
-                                        )}
-                                    </SelectContent>
-                                </Select>
-                                <Button onClick={handleAssignStudent} disabled={!studentToAdd}>
-                                    <Plus className="h-4 w-4" />
-                                    <span className="sr-only">Assign</span>
-                                </Button>
-                             </div>
-                        </div>
-                    )}
-                </div>
-                 <DialogFooter>
-                    <DialogClose asChild>
-                        <Button type="button" variant="secondary">
-                        Close
-                        </Button>
-                    </DialogClose>
-                </DialogFooter>
-             </>
-           )}
-        </DialogContent>
-      </Dialog>
-    </div>
-  )
-  
   function renderHostelContent(hostelList: Hostel[]) {
       return (
           <div className="space-y-4">
@@ -306,4 +218,92 @@ export default function RoomsPage() {
         </div>
       )
   }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Room Management</h1>
+        <p className="text-muted-foreground">View and manage hostel room assignments.</p>
+      </div>
+      
+      <Dialog onOpenChange={(isOpen) => !isOpen && setSelectedRoom(null)}>
+        <Tabs defaultValue="boys" className="w-full" onValueChange={(value) => handleTabChange(value === 'boys' ? 'Male' : 'Female')}>
+            <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="boys">Boys' Hostels</TabsTrigger>
+                <TabsTrigger value="girls">Girls' Hostels</TabsTrigger>
+            </TabsList>
+            <TabsContent value="boys">
+                {renderHostelContent(maleHostels)}
+            </TabsContent>
+            <TabsContent value="girls">
+                {renderHostelContent(femaleHostels)}
+            </TabsContent>
+        </Tabs>
+      
+        <DialogContent className="sm:max-w-md">
+           {selectedRoom && (
+             <>
+                <DialogHeader>
+                    <DialogTitle>Manage Room {selectedRoom.id}</DialogTitle>
+                    <DialogDescription>
+                        Assign or remove students from this room. Capacity: {selectedRoom.occupants.length}/{selectedRoom.capacity}
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                    <div>
+                        <h4 className="font-medium text-sm mb-2">Occupants</h4>
+                        <div className="space-y-2">
+                           {selectedRoom.occupants.length > 0 ? (
+                                selectedRoom.occupants.map(studentId => (
+                                    <div key={studentId} className="flex items-center justify-between p-2 bg-muted/50 rounded-md">
+                                        <span className="text-sm">{getStudentName(studentId)}</span>
+                                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveStudent(studentId)}>
+                                            <X className="h-4 w-4 text-destructive" />
+                                        </Button>
+                                    </div>
+                                ))
+                           ) : (
+                                <p className="text-sm text-muted-foreground text-center py-2">This room is vacant.</p>
+                           )}
+                        </div>
+                    </div>
+                    {selectedRoom.occupants.length < selectedRoom.capacity && (
+                        <div>
+                             <h4 className="font-medium text-sm mb-2">Assign Student</h4>
+                             <div className="flex gap-2">
+                                <Select value={studentToAdd} onValueChange={setStudentToAdd}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select a student" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {availableStudents.length > 0 ? (
+                                            availableStudents.map(student => (
+                                                <SelectItem key={student.id} value={student.id}>{student.name}</SelectItem>
+                                            ))
+                                        ) : (
+                                            <div className="p-4 text-sm text-muted-foreground">No unassigned students.</div>
+                                        )}
+                                    </SelectContent>
+                                </Select>
+                                <Button onClick={handleAssignStudent} disabled={!studentToAdd}>
+                                    <Plus className="h-4 w-4" />
+                                    <span className="sr-only">Assign</span>
+                                </Button>
+                             </div>
+                        </div>
+                    )}
+                </div>
+                 <DialogFooter>
+                    <DialogClose asChild>
+                        <Button type="button" variant="secondary">
+                        Close
+                        </Button>
+                    </DialogClose>
+                </DialogFooter>
+             </>
+           )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
 }
