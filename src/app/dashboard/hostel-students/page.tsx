@@ -39,15 +39,21 @@ export default function HostelStudentsPage() {
   const [studentToAssign, setStudentToAssign] = useState<string>("")
 
   const loadData = useCallback(() => {
-    const storedHostels = localStorage.getItem('hostelsData')
-    const storedStudents = localStorage.getItem('studentsData')
+    const storedHostels = localStorage.getItem('hostelsData');
+    const storedStudents = localStorage.getItem('studentsData');
     
     let currentHostels: Hostel[] = storedHostels ? JSON.parse(storedHostels) : defaultHostels;
-    setHostels(currentHostels)
+    setHostels(currentHostels);
     
     let students: Student[] = storedStudents ? JSON.parse(storedStudents) : defaultStudentsData;
-    setAllStudents(students);
-  }, [])
+
+    // FIX: De-duplicate students to prevent crash from bad data in localStorage
+    const uniqueStudents = students.filter((student, index, self) =>
+        index === self.findIndex((s) => s.id === student.id)
+    );
+    setAllStudents(uniqueStudents);
+
+  }, []);
 
   useEffect(() => {
     loadData()
