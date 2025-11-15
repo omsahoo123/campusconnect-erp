@@ -46,18 +46,7 @@ export default function HostelStudentsPage() {
     setHostels(currentHostels)
     
     let students: Student[] = storedStudents ? JSON.parse(storedStudents) : defaultStudentsData;
-    
-    // De-duplicate students to prevent key errors
-    const uniqueStudentIds = new Set<string>();
-    const uniqueStudents = students.filter(student => {
-        if (uniqueStudentIds.has(student.id)) {
-            return false;
-        }
-        uniqueStudentIds.add(student.id);
-        return true;
-    });
-
-    setAllStudents(uniqueStudents);
+    setAllStudents(students);
   }, [])
 
   useEffect(() => {
