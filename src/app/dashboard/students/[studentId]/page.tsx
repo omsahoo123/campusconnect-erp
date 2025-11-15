@@ -220,7 +220,7 @@ export default function StudentProfilePage() {
             </div>
             <div className="flex items-center gap-4">
                 <CalendarIcon className="h-5 w-5 text-muted-foreground" />
-                <span className="text-sm">Joined on {new Date(student.joinDate).toLocaleDateString()}</span>
+                <span className="text-sm">Joined on {new Date(student.joinDate).toLocaleDateString('en-GB')}</span>
             </div>
             </CardContent>
         </Card>
@@ -305,5 +305,7 @@ export default function StudentProfilePage() {
     </div>
   );
 }
+
+    
 
     
