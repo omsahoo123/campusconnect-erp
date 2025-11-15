@@ -20,8 +20,8 @@ export const defaultHostels: Hostel[] = [
     name: "St. Patrick Hostel",
     gender: "Male",
     rooms: [
-      { id: 'A-101', floor: 1, capacity: 2, occupants: ['STU001'] },
-      { id: 'A-102', floor: 1, capacity: 2, occupants: ['STU003'] },
+      { id: 'A-101', floor: 1, capacity: 2, occupants: [] },
+      { id: 'A-102', floor: 1, capacity: 2, occupants: [] },
       { id: 'B-201', floor: 2, capacity: 2, occupants: [] },
     ]
   },
@@ -30,20 +30,20 @@ export const defaultHostels: Hostel[] = [
     name: "St. Teresa Hostel",
     gender: "Female",
     rooms: [
-      { id: 'A-101', floor: 1, capacity: 2, occupants: ['STU002'] },
+      { id: 'A-101', floor: 1, capacity: 2, occupants: [] },
       { id: 'A-102', floor: 1, capacity: 2, occupants: [] },
-      { id: 'B-201', floor: 2, capacity: 2, occupants: ['STU004'] },
+      { id: 'B-201', floor: 2, capacity: 2, occupants: [] },
     ]
   }
 ];
 
 
 // This is now derived from defaultRooms occupants
-export const defaultHostelStudents: string[] = ['STU001', 'STU002', 'STU003', 'STU004'];
+export const defaultHostelStudents: string[] = [];
 
 // This will now be calculated from the rooms data, but we can keep it for other components if needed.
 export const defaultRoomStatusData = [
-  { floor: "Floor 1", occupied: 1, total: 6 }, // Based on 3 rooms of 2 capacity
+  { floor: "Floor 1", occupied: 0, total: 6 }, // Based on 3 rooms of 2 capacity
   { floor: "Floor 2", occupied: 0, total: 4 }, // Based on 2 rooms of 2 capacity
   { floor: "Floor 3", occupied: 0, total: 3 }, // Based on 1 room of 3 capacity
 ];
