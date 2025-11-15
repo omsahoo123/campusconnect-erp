@@ -458,11 +458,13 @@ const TeacherCoursesPage = () => {
                                                             </Button>
                                                         </DropdownMenuTrigger>
                                                         <DropdownMenuContent align="end">
-                                                            {gradeOptions.map(grade => (
-                                                                <DropdownMenuItem key={grade} onSelect={() => handleGradeChange(studentId, selectedCourse.class, grade)}>
-                                                                    {grade}
-                                                                </DropdownMenuItem>
-                                                            ))}
+                                                            <ScrollArea className="h-[200px]">
+                                                                {gradeOptions.map(grade => (
+                                                                    <DropdownMenuItem key={grade} onSelect={() => handleGradeChange(studentId, selectedCourse.class, grade)}>
+                                                                        {grade}
+                                                                    </DropdownMenuItem>
+                                                                ))}
+                                                            </ScrollArea>
                                                         </DropdownMenuContent>
                                                     </DropdownMenu>
                                                     <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveStudent(studentId)}>
