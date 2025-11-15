@@ -45,7 +45,43 @@ export default function HostelStudentsPage() {
     let currentHostels: Hostel[] = storedHostels ? JSON.parse(storedHostels) : defaultHostels;
     
     setHostels(currentHostels)
-    setAllStudents(storedStudents ? JSON.parse(storedStudents) : defaultStudentsData)
+    
+    let students: Student[] = storedStudents ? JSON.parse(storedStudents) : defaultStudentsData;
+    
+    // De-duplicate students to prevent key errors
+    const uniqueStudentIds = new Set<string>();
+    const uniqueStudents = students.filter(student => {
+        if (uniqueStudentIds.has(student.id)) {
+            return false;
+        }
+        uniqueStudentIds.add(student.id);
+        return true;
+    });
+
+    setAllStudents(uniqueStudents);
+
+    // One-time migration to ensure Om is assigned
+    const omAssigned = currentHostels.some(h => h.rooms.some(r => r.occupants.includes('STU001')));
+    if (!omAssigned) {
+        const updatedHostels = currentHostels.map(h => {
+            if (h.id === 'H01') { // St. Patrick Hostel
+                return {
+                    ...h,
+                    rooms: h.rooms.map(r => {
+                        if (r.id === 'A-101' && !r.occupants.includes('STU001')) {
+                            return { ...r, occupants: [...r.occupants, 'STU001'] };
+                        }
+                        return r;
+                    })
+                }
+            }
+            return h;
+        });
+        setHostels(updatedHostels);
+        localStorage.setItem('hostelsData', JSON.stringify(updatedHostels));
+        window.dispatchEvent(new Event('storage'));
+    }
+
   }, [])
 
   useEffect(() => {
