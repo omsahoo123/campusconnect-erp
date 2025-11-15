@@ -17,7 +17,5 @@ export const transactions = [
 ];
 
 export const studentFees = {
-    "STU001": { total: 1500, paid: 1500, due: 0 },
-    "STU002": { total: 1500, paid: 700, due: 800 },
-    "STU003": { total: 1500, paid: 0, due: 1500 },
+    "STU001": { total: 1500, paid: 1500, due: 0 }
 };
