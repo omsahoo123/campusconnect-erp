@@ -92,25 +92,31 @@ export default function HostelStudentsPage() {
   };
 
   const residentStudents = useMemo<HostelStudentInfo[]>(() => {
-    const residents: HostelStudentInfo[] = []
+    const residents: HostelStudentInfo[] = [];
+    const residentIds = new Set<string>();
+
     hostels.forEach(hostel => {
       hostel.rooms.forEach(room => {
         room.occupants.forEach(studentId => {
-          const student = allStudents.find(s => s.id === studentId)
-          if (student) {
-            residents.push({
-              studentId: student.id,
-              studentName: student.name,
-              hostelId: hostel.id,
-              hostelName: hostel.name,
-              roomId: room.id,
-            })
+          // Ensure we only add each student once, even if data is corrupted
+          if (!residentIds.has(studentId)) {
+            const student = allStudents.find(s => s.id === studentId);
+            if (student) {
+              residents.push({
+                studentId: student.id,
+                studentName: student.name,
+                hostelId: hostel.id,
+                hostelName: hostel.name,
+                roomId: room.id,
+              });
+              residentIds.add(studentId);
+            }
           }
-        })
-      })
-    })
+        });
+      });
+    });
     return residents.sort((a, b) => a.studentName.localeCompare(b.studentName));
-  }, [hostels, allStudents])
+  }, [hostels, allStudents]);
   
   const allAssignedStudentIds = useMemo(() => new Set(residentStudents.map(r => r.studentId)), [residentStudents]);
 
@@ -376,5 +382,3 @@ export default function HostelStudentsPage() {
     </div>
   )
 }
-
-    
