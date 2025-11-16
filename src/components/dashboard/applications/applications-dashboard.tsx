@@ -26,6 +26,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 
 
 interface StudentApplication {
@@ -76,6 +77,7 @@ export function ApplicationsDashboard() {
   const [selectedStudentApp, setSelectedStudentApp] = useState<StudentApplication | null>(null);
   const [selectedTeacherApp, setSelectedTeacherApp] = useState<TeacherApplication | null>(null);
 
+  const [newStudentId, setNewStudentId] = useState("");
   const [assignHostel, setAssignHostel] = useState(false);
   const [allHostels, setAllHostels] = useState<Hostel[]>([]);
   const [selectedHostel, setSelectedHostel] = useState<string>('');
@@ -125,14 +127,31 @@ export function ApplicationsDashboard() {
 
 
   const handleApproveStudent = () => {
-    if (!selectedStudentApp) return;
+    if (!selectedStudentApp || !newStudentId) {
+        toast({
+            variant: "destructive",
+            title: "Validation Error",
+            description: "Student ID is required.",
+        });
+        return;
+    }
 
     // Add to main students list
     const storedStudentsString = localStorage.getItem('studentsData');
     const currentStudents = storedStudentsString ? JSON.parse(storedStudentsString) : defaultStudentsData;
     
+    // Check if ID already exists
+    if (currentStudents.some((s: Student) => s.id === newStudentId)) {
+        toast({
+            variant: "destructive",
+            title: "ID Exists",
+            description: `A student with ID ${newStudentId} already exists. Please use a unique ID.`,
+        });
+        return;
+    }
+
     const newStudent: Student = {
-      id: `STU${Date.now()}`.slice(0, 6),
+      id: newStudentId,
       name: selectedStudentApp.name,
       email: selectedStudentApp.email,
       phone: selectedStudentApp.phone,
@@ -232,6 +251,7 @@ export function ApplicationsDashboard() {
 
   const closeStudentDialog = () => {
     setSelectedStudentApp(null);
+    setNewStudentId("");
     setAssignHostel(false);
     setSelectedHostel('');
     setSelectedRoom('');
@@ -313,9 +333,21 @@ export function ApplicationsDashboard() {
                       </DialogDescription>
                   </DialogHeader>
                    <div className="py-4 space-y-4">
-                      <p><strong>Name:</strong> {selectedStudentApp.name}</p>
-                      <p><strong>Email:</strong> {selectedStudentApp.email}</p>
-                      <p><strong>Gender:</strong> <span className="capitalize">{selectedStudentApp.gender}</span></p>
+                      <div>
+                        <p><strong>Name:</strong> {selectedStudentApp.name}</p>
+                        <p><strong>Email:</strong> {selectedStudentApp.email}</p>
+                        <p><strong>Gender:</strong> <span className="capitalize">{selectedStudentApp.gender}</span></p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="studentId" className="font-semibold">Student ID</Label>
+                        <Input 
+                            id="studentId" 
+                            placeholder="Enter a unique student ID (e.g., STU003)" 
+                            value={newStudentId} 
+                            onChange={(e) => setNewStudentId(e.target.value)}
+                        />
+                      </div>
 
                       <div className="flex items-center space-x-2 pt-4">
                         <Checkbox id="assignHostel" checked={assignHostel} onCheckedChange={(checked) => setAssignHostel(!!checked)} />
