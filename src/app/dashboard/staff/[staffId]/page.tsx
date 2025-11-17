@@ -92,7 +92,7 @@ export default function StaffProfilePage() {
         </Avatar>
         <div>
             {isEditing ? (
-                 <Input className="text-3xl font-bold mb-2" value={staff.name} onChange={(e) => setStaff({...staff, name: e.target.value })} />
+                 <Input className="text-3xl font-bold mb-2" value={staff.name || ''} onChange={(e) => setStaff({...staff, name: e.target.value })} />
             ) : (
                  <h1 className="text-3xl font-bold">{staff.name}</h1>
             )}
@@ -126,7 +126,7 @@ export default function StaffProfilePage() {
           <div className="flex items-center gap-4">
             <Mail className="h-5 w-5 text-muted-foreground" />
             {isEditing ? (
-                <Input value={staff.email} onChange={(e) => setStaff({...staff, email: e.target.value})} />
+                <Input value={staff.email || ''} onChange={(e) => setStaff({...staff, email: e.target.value})} />
             ) : (
                 <a href={`mailto:${staff.email}`} className="text-sm hover:underline">{staff.email}</a>
             )}
@@ -134,7 +134,7 @@ export default function StaffProfilePage() {
           <div className="flex items-center gap-4">
             <Phone className="h-5 w-5 text-muted-foreground" />
              {isEditing ? (
-                <Input value={staff.phone} onChange={(e) => setStaff({...staff, phone: e.target.value})} />
+                <Input value={staff.phone || ''} onChange={(e) => setStaff({...staff, phone: e.target.value})} />
             ) : (
                 <span className="text-sm">{staff.phone}</span>
             )}
@@ -149,7 +149,7 @@ export default function StaffProfilePage() {
         <CardContent className="flex items-center gap-4">
             <Briefcase className="h-5 w-5 text-muted-foreground" />
              {isEditing ? (
-                <Input value={staff.department} onChange={(e) => setStaff({...staff, department: e.target.value})} />
+                <Input value={staff.department || ''} onChange={(e) => setStaff({...staff, department: e.target.value})} />
             ) : (
                 <p className="text-sm font-medium">{staff.department}</p>
             )}
