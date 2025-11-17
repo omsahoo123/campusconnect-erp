@@ -104,7 +104,7 @@ export function FinanceDashboard() {
         
         for (const studentId in allFees) {
             const student = studentList.find((s: any) => s.id === studentId);
-            const studentName = student ? student.name : 'Unknown Student';
+            const studentName = student ? student.name : studentId;
             allFees[studentId].payments.forEach(p => {
                 allPayments.push({ ...p, studentName });
             });

@@ -47,14 +47,6 @@ export const staffData: Staff[] = [
 ];
 
 
-export const studentAttendanceData = [
-  { subject: 'Math', total: 20, attended: 18 },
-  { subject: 'Physics', total: 20, attended: 19 },
-  { subject: 'History', total: 15, attended: 15 },
-  { subject: 'English', total: 18, attended: 14 },
-  { subject: 'Art', total: 10, attended: 9 },
-];
-
 export const teacherScheduleData = [
     { time: '09:00 - 10:30', class: 'Calculus I', location: 'Room 301' },
     { time: '11:00 - 12:30', class: 'Linear Algebra', location: 'Room 302' },
