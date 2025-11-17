@@ -39,6 +39,7 @@ const navItems = {
     { href: "/dashboard/settings", icon: <Settings />, label: "Profile", tooltip: "Profile" },
   ],
   finance: [
+    { href: "/dashboard", icon: <LayoutDashboard />, label: "Dashboard", tooltip: "Dashboard" },
     { href: "/dashboard/finance", icon: <Banknote />, label: "Fee Management", tooltip: "Fee Management" },
     { href: "/dashboard/settings", icon: <Settings />, label: "Settings", tooltip: "Settings" },
   ],

@@ -249,7 +249,7 @@ export function StudentDashboard() {
                 </div>
              ) : (
                 <div className="text-2xl font-bold text-destructive">
-                    {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(feeBalance)} Due
+                    {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(feeBalance)} Due
                 </div>
              )}
             <p className="text-xs text-muted-foreground">Next due on 1st Aug 2024</p>

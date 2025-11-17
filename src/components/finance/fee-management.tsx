@@ -19,7 +19,7 @@ import { ScrollArea } from "../ui/scroll-area";
 import { Separator } from "../ui/separator";
 
 const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+    return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amount);
 };
 
 export function FeeManagement() {
@@ -46,8 +46,8 @@ export function FeeManagement() {
             if (!fees[student.id]) {
                 fees[student.id] = {
                     studentId: student.id,
-                    totalTuition: 5000,
-                    totalHostelFee: 2000,
+                    totalTuition: 500000,
+                    totalHostelFee: 150000,
                     payments: [],
                 };
                 feesUpdated = true;
@@ -75,7 +75,7 @@ export function FeeManagement() {
 
     const studentFeeSummary = useMemo(() => {
         return allStudents.map(student => {
-            const feeData = allFees[student.id] || { totalTuition: 5000, totalHostelFee: 2000, payments: [] };
+            const feeData = allFees[student.id] || { totalTuition: 500000, totalHostelFee: 150000, payments: [] };
             const totalPaid = feeData.payments.reduce((sum, p) => sum + p.amount, 0);
             const totalDue = feeData.totalTuition + feeData.totalHostelFee;
             const balance = totalDue - totalPaid;
