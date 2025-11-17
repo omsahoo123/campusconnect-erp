@@ -4,7 +4,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { teacherScheduleData as defaultTeacherScheduleData, studentsData, staffData } from "@/lib/data";
+import { teacherScheduleData as defaultTeacherScheduleData, studentsData, staffData, userProfiles } from "@/lib/data";
 import { type Student } from "@/components/dashboard/students/student-table";
 import { BookOpen, Users, Edit, Clock, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -52,7 +52,7 @@ const StudentCoursesPage = () => {
 
     useEffect(() => {
         if (role === 'student') {
-            const studentProfile = studentsData.find(s => s.email === 'osahoo9178@gmail.com');
+            const studentProfile = studentsData.find(s => s.email === userProfiles.student.email);
             if (studentProfile) {
                 const studentId = studentProfile.id;
 

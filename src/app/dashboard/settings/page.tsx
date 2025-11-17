@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import { useState, useEffect } from "react"
@@ -87,11 +88,6 @@ export default function SettingsPage() {
       title: "Settings Saved",
       description: "Your profile changes have been saved.",
     });
-  }
-  
-  if (role === 'student' && profile.email !== 'osahoo9178@gmail.com') {
-      router.push('/dashboard/settings');
-      return null;
   }
 
 

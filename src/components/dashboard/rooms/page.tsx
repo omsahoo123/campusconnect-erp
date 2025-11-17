@@ -42,7 +42,8 @@ export default function RoomsPage() {
             if (maleHostel) setSelectedHostelId(maleHostel.id);
         } else if (selectedHostelId && !parsedHostels.some(h => h.id === selectedHostelId)) {
             // if the selected hostel was deleted, reset selection
-            const firstHostelOfCurrentTab = parsedHostels.find(h => h.gender === (maleHostels.length > 0 ? 'Male' : 'Female'));
+            const sameGenderHostels = parsedHostels.filter(h => h.gender === (maleHostels.length > 0 ? 'Male' : 'Female'));
+            const firstHostelOfCurrentTab = sameGenderHostels.length > 0 ? sameGenderHostels[0] : null;
             setSelectedHostelId(firstHostelOfCurrentTab?.id || null);
         }
 
@@ -74,7 +75,7 @@ export default function RoomsPage() {
   };
 
   // Student assignment logic
-  const getStudentName = (studentId: string) => allStudentsData.find(s => s.id === studentId)?.name || studentId;
+  const getStudentName = (studentId: string) => allStudentsData.find(s => s.id === studentId)?.name || "Unknown Student";
 
   const handleAssignStudent = () => {
     if (!selectedHostel || !selectedRoom || !studentToAdd) return;
