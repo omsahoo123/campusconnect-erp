@@ -9,7 +9,8 @@ import {
   MoreHorizontal,
   Trash2,
   KeyRound,
-  Copy
+  Copy,
+  Edit,
 } from "lucide-react"
 import {
   ColumnDef,
@@ -191,6 +192,10 @@ const getColumns = (
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => router.push(`/dashboard/staff/${staff.id}`)}>
                 View profile
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push(`/dashboard/staff/${staff.id}`)}>
+                <Edit className="mr-2 h-4 w-4" />
+                Edit Profile
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleGenerateCredentials(staff)}>
                 <KeyRound className="mr-2 h-4 w-4" />
