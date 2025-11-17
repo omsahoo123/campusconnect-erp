@@ -341,20 +341,13 @@ export function StudentTable() {
     const storedCredentialsString = localStorage.getItem('userCredentials');
     const storedCredentials = storedCredentialsString ? JSON.parse(storedCredentialsString) : [];
     
-    const existingUser = storedCredentials.find((cred: any) => cred.email === student.email);
-
-    let password;
-    if (existingUser && existingUser.password) {
-        password = existingUser.password;
-    } else {
-        password = Math.random().toString(36).slice(-8);
-    }
-    
-    const credential = { email: student.email, password: password, role: 'student' };
+    const credential = { email: student.email, password: student.phone, role: 'student' };
     
     const existingUserIndex = storedCredentials.findIndex((cred: any) => cred.email === student.email);
 
     if (existingUserIndex > -1) {
+        // If user exists, update their record but keep the original password unless we decide to reset it.
+        // For this logic, we will always align the password with the phone number.
         storedCredentials[existingUserIndex] = credential;
     } else {
         storedCredentials.push(credential);

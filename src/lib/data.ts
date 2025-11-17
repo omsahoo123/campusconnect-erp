@@ -42,8 +42,8 @@ export const studentsData: Student[] = [
 ];
 
 export const staffData: Staff[] = [
-  { id: "TCH01", name: "Ayushman Patra", department: "Computer Science", email: "osahoo225@gmail.com", status: "Active" as const },
-  { id: "TCH02", name: "Emily Vance", department: "Statistics", email: "e.vance@campus.edu", status: "Active" as const }
+  { id: "TCH01", name: "Ayushman Patra", department: "Computer Science", email: "osahoo225@gmail.com", phone: "(987) 654-3210", status: "Active" as const },
+  { id: "TCH02", name: "Emily Vance", department: "Statistics", email: "e.vance@campus.edu", phone: "(987) 654-3211", status: "Active" as const }
 ];
 
 
