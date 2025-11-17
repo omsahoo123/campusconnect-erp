@@ -2,12 +2,15 @@
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { TrendingUp, TrendingDown, CircleDollarSign, Wallet } from "lucide-react";
+import { TrendingUp, TrendingDown, CircleDollarSign, Wallet, Home, Hourglass } from "lucide-react";
 import { Area, AreaChart, CartesianGrid, XAxis, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from "@/components/ui/chart";
-import { feeCollectionData as defaultFeeData, defaultTransactions, defaultStudentFees } from "@/lib/finance";
+import { feeCollectionData as defaultFeeData, defaultStudentFees, Payment } from "@/lib/finance";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { format } from "date-fns";
+import { type AllStudentFees } from "@/lib/finance";
+import { studentsData as defaultStudentsData } from "@/lib/data";
+
 
 const chartConfig: ChartConfig = {
     collected: {
@@ -20,37 +23,14 @@ const chartConfig: ChartConfig = {
     },
 };
 
-type Transaction = {
-    id: string;
-    type: 'income' | 'expense';
-    description: string;
-    amount: number;
-    date: string;
-};
-
-type StudentFee = {
-    total: number;
-    paid: number;
-    due: number;
-};
-
-type StudentFees = {
-    [studentId: string]: StudentFee;
-};
-
-
 export function FinanceDashboard() {
-    const [transactions, setTransactions] = useState<Transaction[]>([]);
-    const [studentFees, setStudentFees] = useState<StudentFees>({});
+    const [allFees, setAllFees] = useState<AllStudentFees>({});
 
     const loadData = useCallback(() => {
         try {
             if (typeof window !== 'undefined') {
-                const storedTransactions = localStorage.getItem('transactions');
-                setTransactions(storedTransactions ? JSON.parse(storedTransactions) : defaultTransactions);
-
                 const storedFees = localStorage.getItem('studentFees');
-                setStudentFees(storedFees ? JSON.parse(storedFees) : defaultStudentFees);
+                setAllFees(storedFees ? JSON.parse(storedFees) : defaultStudentFees);
             }
         } catch (error) {
             console.error("Failed to load finance data from localStorage", error);
@@ -61,8 +41,7 @@ export function FinanceDashboard() {
         loadData();
         
         const handleStorageChange = (event: StorageEvent) => {
-            // The storage event is fired in the same window, so we check for our specific keys
-             if (['transactions', 'studentFees'].includes(event.key || '')) {
+             if (event.key === 'studentFees') {
                 loadData();
             }
         };
@@ -75,24 +54,40 @@ export function FinanceDashboard() {
     }, [loadData]);
 
 
-    const { totalRevenue, totalExpenses, outstandingFees, netProfit } = useMemo(() => {
-        const revenue = transactions
-            .filter(t => t.type === 'income')
-            .reduce((acc, t) => acc + t.amount, 0);
-
-        const expenses = transactions
-            .filter(t => t.type === 'expense')
-            .reduce((acc, t) => acc + t.amount, 0);
-            
-        const outstanding = Object.values(studentFees).reduce((acc, fee: any) => acc + (fee.totalTuition + fee.totalHostelFee - fee.payments.reduce((pSum: number, p: any) => pSum + p.amount, 0)), 0);
-
-        return {
-            totalRevenue: revenue,
-            totalExpenses: expenses,
-            outstandingFees: outstanding,
-            netProfit: revenue - expenses,
+    const { 
+        totalTuition, 
+        totalHostel,
+        pendingTuition,
+        pendingHostel
+    } = useMemo(() => {
+        const stats = {
+            totalTuition: 0,
+            totalHostel: 0,
+            paidTuition: 0,
+            paidHostel: 0
         };
-    }, [transactions, studentFees]);
+
+        for (const studentId in allFees) {
+            const feeRecord = allFees[studentId];
+            stats.totalTuition += feeRecord.totalTuition;
+            stats.totalHostel += feeRecord.totalHostelFee;
+            
+            feeRecord.payments.forEach(payment => {
+                if (payment.type === 'Tuition') {
+                    stats.paidTuition += payment.amount;
+                } else if (payment.type === 'Hostel') {
+                    stats.paidHostel += payment.amount;
+                }
+            });
+        }
+        
+        return {
+            totalTuition: stats.totalTuition,
+            totalHostel: stats.totalHostel,
+            pendingTuition: stats.totalTuition - stats.paidTuition,
+            pendingHostel: stats.totalHostel - stats.paidHostel,
+        };
+    }, [allFees]);
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('en-IN', {
@@ -104,10 +99,21 @@ export function FinanceDashboard() {
     };
     
     const recentTransactions = useMemo(() => {
-        return [...transactions]
+        const allPayments: (Payment & { studentName: string })[] = [];
+        const studentList = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('studentsData') || '[]') : defaultStudentsData;
+        
+        for (const studentId in allFees) {
+            const student = studentList.find((s: any) => s.id === studentId);
+            const studentName = student ? student.name : 'Unknown Student';
+            allFees[studentId].payments.forEach(p => {
+                allPayments.push({ ...p, studentName });
+            });
+        }
+
+        return allPayments
             .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
             .slice(0, 4);
-    }, [transactions]);
+    }, [allFees]);
 
 
   return (
@@ -119,42 +125,42 @@ export function FinanceDashboard() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(totalRevenue)}</div>
-            <p className="text-xs text-muted-foreground">+20.1% from last month</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
-            <TrendingDown className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(totalExpenses)}</div>
-            <p className="text-xs text-muted-foreground">+2% from last month</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Outstanding Fees</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Tuition Fee</CardTitle>
             <CircleDollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(outstandingFees)}</div>
-            <p className="text-xs text-muted-foreground">from all students</p>
+            <div className="text-2xl font-bold">{formatCurrency(totalTuition)}</div>
+            <p className="text-xs text-muted-foreground">Expected from all students</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Net Profit</CardTitle>
-            <Wallet className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Total Hostel Fee</CardTitle>
+            <Home className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(netProfit)}</div>
-            <p className="text-xs text-muted-foreground">+15.3% from last month</p>
+            <div className="text-2xl font-bold">{formatCurrency(totalHostel)}</div>
+            <p className="text-xs text-muted-foreground">Expected from residents</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pending Tuition Fee</CardTitle>
+            <Hourglass className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{formatCurrency(pendingTuition)}</div>
+            <p className="text-xs text-muted-foreground">Across all students</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pending Hostel Fee</CardTitle>
+            <Hourglass className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{formatCurrency(pendingHostel)}</div>
+            <p className="text-xs text-muted-foreground">Across all residents</p>
           </CardContent>
         </Card>
       </div>
@@ -201,30 +207,30 @@ export function FinanceDashboard() {
         </Card>
         <Card className="col-span-1 lg:col-span-3">
           <CardHeader>
-            <CardTitle>Recent Transactions</CardTitle>
+            <CardTitle>Recent Payments</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-             {recentTransactions.map(transaction => (
+             {recentTransactions.length > 0 ? recentTransactions.map(transaction => (
                 <div key={transaction.id} className="flex items-center gap-3">
-                    <div className={`p-2 rounded-full ${transaction.type === 'income' ? 'bg-green-100 dark:bg-green-900/50' : 'bg-red-100 dark:bg-red-900/50'}`}>
-                        {transaction.type === 'income' ? 
-                            <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" /> : 
-                            <TrendingDown className="h-4 w-4 text-red-600 dark:text-red-400" />}
+                    <div className={'p-2 rounded-full bg-green-100 dark:bg-green-900/50'}>
+                        <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
                     </div>
                     <div className="flex-1">
-                        <p className="text-sm font-medium">{transaction.description}</p>
+                        <p className="text-sm font-medium">{transaction.type} Fee from {transaction.studentName}</p>
                         <p className="text-xs text-muted-foreground">{format(new Date(transaction.date), 'dd MMM yyyy')}</p>
                     </div>
-                    <p className={`text-sm font-medium ${transaction.type === 'income' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                        {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
+                    <p className={'text-sm font-medium text-green-600 dark:text-green-400'}>
+                        +{formatCurrency(transaction.amount)}
                     </p>
                 </div>
-             ))}
+             )) : (
+                <div className="flex items-center justify-center h-40">
+                    <p className="text-muted-foreground text-sm">No recent payments found.</p>
+                </div>
+             )}
           </CardContent>
         </Card>
       </div>
     </div>
   );
 }
-
-    
