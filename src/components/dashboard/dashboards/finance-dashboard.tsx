@@ -7,9 +7,9 @@ import { Area, AreaChart, CartesianGrid, XAxis, ResponsiveContainer } from "rech
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from "@/components/ui/chart";
 import { feeCollectionData as defaultFeeData, defaultStudentFees, Payment } from "@/lib/finance";
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { format } from "date-fns";
+import { format, parseISO, startOfMonth, subMonths } from "date-fns";
 import { type AllStudentFees } from "@/lib/finance";
-import { studentsData as defaultStudentsData } from "@/lib/data";
+import { useAppData } from "@/context/app-data-provider";
 
 
 const chartConfig: ChartConfig = {
@@ -24,35 +24,7 @@ const chartConfig: ChartConfig = {
 };
 
 export function FinanceDashboard() {
-    const [allFees, setAllFees] = useState<AllStudentFees>({});
-
-    const loadData = useCallback(() => {
-        try {
-            if (typeof window !== 'undefined') {
-                const storedFees = localStorage.getItem('studentFees');
-                setAllFees(storedFees ? JSON.parse(storedFees) : defaultStudentFees);
-            }
-        } catch (error) {
-            console.error("Failed to load finance data from localStorage", error);
-        }
-    }, []);
-
-    useEffect(() => {
-        loadData();
-        
-        const handleStorageChange = (event: StorageEvent) => {
-             if (event.key === 'studentFees') {
-                loadData();
-            }
-        };
-
-        window.addEventListener('storage', handleStorageChange);
-        
-        return () => {
-            window.removeEventListener('storage', handleStorageChange);
-        };
-    }, [loadData]);
-
+    const { studentFees: allFees, students } = useAppData();
 
     const { 
         totalTuition, 
@@ -60,34 +32,69 @@ export function FinanceDashboard() {
         pendingTuition,
         pendingHostel
     } = useMemo(() => {
-        const stats = {
-            totalTuition: 0,
-            totalHostel: 0,
-            paidTuition: 0,
-            paidHostel: 0
-        };
+        let totalTuition = 0;
+        let totalHostel = 0;
+        let paidTuition = 0;
+        let paidHostel = 0;
 
         for (const studentId in allFees) {
             const feeRecord = allFees[studentId];
-            stats.totalTuition += feeRecord.totalTuition;
-            stats.totalHostel += feeRecord.totalHostelFee;
+            totalTuition += feeRecord.totalTuition;
+            totalHostel += feeRecord.totalHostelFee;
             
             feeRecord.payments.forEach(payment => {
                 if (payment.type === 'Tuition') {
-                    stats.paidTuition += payment.amount;
+                    paidTuition += payment.amount;
                 } else if (payment.type === 'Hostel') {
-                    stats.paidHostel += payment.amount;
+                    paidHostel += payment.amount;
                 }
             });
         }
         
         return {
-            totalTuition: stats.totalTuition,
-            totalHostel: stats.totalHostel,
-            pendingTuition: stats.totalTuition - stats.paidTuition,
-            pendingHostel: stats.totalHostel - stats.paidHostel,
+            totalTuition,
+            totalHostel,
+            pendingTuition: totalTuition - paidTuition,
+            pendingHostel: totalHostel - paidHostel,
         };
     }, [allFees]);
+
+    const feeCollectionData = useMemo(() => {
+        const last7Months = Array.from({ length: 7 }, (_, i) => {
+            return startOfMonth(subMonths(new Date(), i));
+        }).reverse();
+
+        const totalExpectedFees = students.reduce((acc, student) => {
+             const feeRecord = allFees[student.id];
+             if (feeRecord) {
+                 return acc + feeRecord.totalTuition + feeRecord.totalHostelFee;
+             }
+             return acc;
+        }, 0);
+        // Assuming total fees are for the whole year for simplicity. We divide by 12 for a monthly target.
+        const monthlyExpected = totalExpectedFees / 12;
+
+        const allPayments = Object.values(allFees).flatMap(f => f.payments);
+
+        return last7Months.map(monthDate => {
+            const monthKey = format(monthDate, 'yyyy-MM');
+            const monthName = format(monthDate, 'MMM');
+
+            const collected = allPayments
+                .filter(p => format(parseISO(p.date), 'yyyy-MM') === monthKey)
+                .reduce((sum, p) => sum + p.amount, 0);
+
+            // A simplified "pending" logic for the graph.
+            // It assumes a cumulative collection target. A more complex system would be needed for true pending amounts per month.
+            const pending = Math.max(0, monthlyExpected - collected);
+
+            return {
+                month: monthName,
+                collected,
+                pending
+            }
+        });
+    }, [allFees, students]);
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('en-IN', {
@@ -100,10 +107,9 @@ export function FinanceDashboard() {
     
     const recentTransactions = useMemo(() => {
         const allPayments: (Payment & { studentName: string })[] = [];
-        const studentList = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('studentsData') || '[]') : defaultStudentsData;
         
         for (const studentId in allFees) {
-            const student = studentList.find((s: any) => s.id === studentId);
+            const student = students.find((s: any) => s.id === studentId);
             const studentName = student ? student.name : studentId;
             allFees[studentId].payments.forEach(p => {
                 allPayments.push({ ...p, studentName });
@@ -113,7 +119,7 @@ export function FinanceDashboard() {
         return allPayments
             .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
             .slice(0, 4);
-    }, [allFees]);
+    }, [allFees, students]);
 
 
   return (
@@ -174,7 +180,7 @@ export function FinanceDashboard() {
           <CardContent className="pl-2">
             <ChartContainer config={chartConfig} className="h-[300px] w-full">
               <ResponsiveContainer>
-                <AreaChart data={defaultFeeData} accessibilityLayer>
+                <AreaChart data={feeCollectionData} accessibilityLayer>
                   <CartesianGrid vertical={false} />
                   <XAxis
                     dataKey="month"
