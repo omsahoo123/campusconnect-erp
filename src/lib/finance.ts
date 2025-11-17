@@ -50,9 +50,6 @@ export const defaultStudentFees: AllStudentFees = {
         studentId: "STU002",
         totalTuition: 500000,
         totalHostelFee: 150000,
-        payments: [
-            { id: `PAY${Date.now()+1}`, type: 'Tuition', amount: 500000, date: new Date().toISOString() },
-            { id: `PAY${Date.now()+2}`, type: 'Hostel', amount: 150000, date: new Date().toISOString() }
-        ]
+        payments: []
     }
 };
