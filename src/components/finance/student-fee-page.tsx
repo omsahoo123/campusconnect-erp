@@ -21,7 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Separator } from "../ui/separator";
+import { useRouter } from "next/navigation";
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amount);
@@ -29,6 +29,7 @@ const formatCurrency = (amount: number) => {
 
 export function StudentFeePage() {
     const { toast } = useToast();
+    const router = useRouter();
     const { role } = useCurrentUser();
     const [feeStatus, setFeeStatus] = useState<StudentFeeStatus | null>(null);
     const [studentId, setStudentId] = useState<string | null>(null);
@@ -70,7 +71,7 @@ export function StudentFeePage() {
         return { totalDue, totalPaid, balance, tuitionBalance, hostelBalance };
     }, [feeStatus]);
     
-    const handleMakePayment = () => {
+    const handleProceedToPayment = () => {
         if (!studentId || !paymentAmount || parseFloat(paymentAmount) <= 0) {
             toast({ variant: "destructive", title: "Invalid Amount", description: "Please enter a valid payment amount." });
             return;
@@ -78,7 +79,6 @@ export function StudentFeePage() {
 
         const amount = parseFloat(paymentAmount);
 
-        // A simple validation to prevent overpayment
         if (paymentType === 'Tuition' && amount > feeDetails.tuitionBalance) {
              toast({ variant: "destructive", title: "Amount Exceeds Balance", description: `Payment cannot exceed the pending tuition fee of ${formatCurrency(feeDetails.tuitionBalance)}.` });
             return;
@@ -88,25 +88,13 @@ export function StudentFeePage() {
             return;
         }
 
-        const newPayment: Payment = {
-            id: `PAY${Date.now()}`,
+        const query = new URLSearchParams({
+            studentId,
+            amount: amount.toString(),
             type: paymentType,
-            amount: amount,
-            date: new Date().toISOString(),
-        };
+        }).toString();
 
-        const storedFees = localStorage.getItem('studentFees');
-        const allFees: AllStudentFees = storedFees ? JSON.parse(storedFees) : defaultStudentFees;
-        
-        if (allFees[studentId]) {
-            allFees[studentId].payments.push(newPayment);
-            localStorage.setItem('studentFees', JSON.stringify(allFees));
-            window.dispatchEvent(new Event('storage'));
-            
-            toast({ title: "Payment Successful", description: `${formatCurrency(amount)} has been paid towards ${paymentType} fees.` });
-            setIsPayDialogOpen(false);
-            setPaymentAmount("");
-        }
+        router.push(`/dashboard/pay-fee?${query}`);
     }
 
 
@@ -193,7 +181,7 @@ export function StudentFeePage() {
                             </div>
                             <DialogFooter>
                                 <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
-                                <Button onClick={handleMakePayment}>Proceed to Pay</Button>
+                                <Button onClick={handleProceedToPayment}>Proceed to Pay</Button>
                             </DialogFooter>
                         </DialogContent>
                     </Dialog>
