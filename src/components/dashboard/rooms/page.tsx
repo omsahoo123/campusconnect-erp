@@ -42,9 +42,9 @@ export default function RoomsPage() {
             if (maleHostel) setSelectedHostelId(maleHostel.id);
         } else if (selectedHostelId && !parsedHostels.some(h => h.id === selectedHostelId)) {
             // if the selected hostel was deleted, reset selection
-            const sameGenderHostels = parsedHostels.filter(h => h.gender === (maleHostels.length > 0 ? 'Male' : 'Female'));
-            const firstHostelOfCurrentTab = sameGenderHostels.length > 0 ? sameGenderHostels[0] : null;
-            setSelectedHostelId(firstHostelOfCurrentTab?.id || null);
+            const currentTabGender = hostels.find(h => h.id === selectedHostelId)?.gender || 'Male';
+            const sameGenderHostels = parsedHostels.filter(h => h.gender === currentTabGender);
+            setSelectedHostelId(sameGenderHostels.length > 0 ? sameGenderHostels[0].id : null);
         }
 
     } else {
@@ -55,7 +55,7 @@ export default function RoomsPage() {
              if (maleHostel) setSelectedHostelId(maleHostel.id);
         }
     }
-  }, [selectedHostelId]);
+  }, [selectedHostelId, hostels]);
 
   useEffect(() => {
     loadData();
@@ -419,3 +419,5 @@ export default function RoomsPage() {
     </div>
   )
 }
+
+    
