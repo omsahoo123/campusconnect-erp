@@ -11,6 +11,13 @@ export const feeCollectionData = [
   { month: "Jul", collected: 3490, pending: 4300 },
 ];
 
+export const defaultTransactions = [
+    { id: 'TRN001', type: 'income' as const, description: 'Tuition Fee - Om Sahoo', amount: 2500, date: new Date().toISOString() },
+    { id: 'TRN002', type: 'expense' as const, description: 'Electricity Bill', amount: 300, date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
+    { id: 'TRN003', type: 'expense' as const, description: 'Stationery Purchase', amount: 150, date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() },
+    { id: 'TRN004', type: 'income' as const, description: 'Tuition Fee - Pramila', amount: 5000, date: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString() },
+];
+
 export type Payment = {
     id: string;
     type: 'Tuition' | 'Hostel';

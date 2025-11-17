@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { TrendingUp, TrendingDown, CircleDollarSign, Wallet } from "lucide-react";
 import { Area, AreaChart, CartesianGrid, XAxis, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from "@/components/ui/chart";
-import { feeCollectionData as defaultFeeData, transactions as defaultTransactions, studentFees as defaultStudentFees } from "@/lib/finance";
+import { feeCollectionData as defaultFeeData, defaultTransactions, defaultStudentFees } from "@/lib/finance";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { format } from "date-fns";
 
@@ -219,4 +219,3 @@ export function FinanceDashboard() {
     </div>
   );
 }
-
