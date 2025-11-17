@@ -6,8 +6,8 @@ import { Users, GraduationCap, Briefcase, Activity, FileText } from "lucide-reac
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from "@/components/ui/chart";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { studentsData as defaultStudentsData, staffData as defaultStaffData } from "@/lib/data";
-import { formatDistanceToNow } from "date-fns";
+import { studentsData as defaultStudentsData, staffData as defaultStaffData, type Student } from "@/lib/data";
+import { formatDistanceToNow, parseISO } from "date-fns";
 
 const chartConfig: ChartConfig = {
     admissions: {
@@ -58,13 +58,15 @@ export function AdminDashboard() {
   const [newAdmissionsCount, setNewAdmissionsCount] = useState(0);
   const [teacherAppsCount, setTeacherAppsCount] = useState(0);
   const [activityLog, setActivityLog] = useState<ActivityLogItem[]>([]);
+  const [students, setStudents] = useState<Student[]>([]);
 
   const loadData = useCallback(() => {
     try {
       if (typeof window !== 'undefined') {
         const storedStudents = localStorage.getItem('studentsData');
-        const students = storedStudents ? JSON.parse(storedStudents) : defaultStudentsData;
-        setStudentCount(students.length);
+        const studentList: Student[] = storedStudents ? JSON.parse(storedStudents) : defaultStudentsData;
+        setStudents(studentList);
+        setStudentCount(studentList.length);
 
         const storedStaff = localStorage.getItem('staffData');
         const staff = storedStaff ? JSON.parse(storedStaff) : defaultStaffData;
@@ -90,6 +92,7 @@ export function AdminDashboard() {
       setNewAdmissionsCount(0);
       setTeacherAppsCount(0);
       setActivityLog([]);
+      setStudents(defaultStudentsData);
     }
   }, []);
 
@@ -110,11 +113,11 @@ export function AdminDashboard() {
   }, [loadData]);
 
   const admissionsData = useMemo(() => {
-    const studentAdmissions = activityLog.filter(item => item.type === 'NEW_STUDENT');
     const monthlyAdmissions: { [key: string]: number } = {};
 
-    studentAdmissions.forEach(item => {
-        const month = new Date(item.timestamp).toLocaleString('default', { month: 'short', year: '2-digit' });
+    students.forEach(student => {
+        const joinDate = parseISO(student.joinDate);
+        const month = joinDate.toLocaleString('default', { month: 'short', year: '2-digit' });
         monthlyAdmissions[month] = (monthlyAdmissions[month] || 0) + 1;
     });
 
@@ -129,7 +132,7 @@ export function AdminDashboard() {
         admissions: monthlyAdmissions[monthStr] || 0
     }));
 
-  }, [activityLog]);
+  }, [students]);
 
 
   return (
@@ -232,5 +235,3 @@ export function AdminDashboard() {
     </div>
   );
 }
-
-    
