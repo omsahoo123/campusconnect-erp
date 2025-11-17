@@ -59,14 +59,19 @@ export function FinanceDashboard() {
 
     useEffect(() => {
         loadData();
+        
         const handleStorageChange = (event: StorageEvent) => {
-            if (['transactions', 'studentFees'].includes(event.key || '')) {
+            // The storage event is fired in the same window, so we check for our specific keys
+             if (['transactions', 'studentFees'].includes(event.key || '')) {
                 loadData();
             }
         };
 
         window.addEventListener('storage', handleStorageChange);
-        return () => window.removeEventListener('storage', handleStorageChange);
+        
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+        };
     }, [loadData]);
 
 
@@ -79,7 +84,7 @@ export function FinanceDashboard() {
             .filter(t => t.type === 'expense')
             .reduce((acc, t) => acc + t.amount, 0);
             
-        const outstanding = Object.values(studentFees).reduce((acc, fee) => acc + fee.due, 0);
+        const outstanding = Object.values(studentFees).reduce((acc, fee: any) => acc + (fee.totalTuition + fee.totalHostelFee - fee.payments.reduce((pSum: number, p: any) => pSum + p.amount, 0)), 0);
 
         return {
             totalRevenue: revenue,
@@ -93,6 +98,8 @@ export function FinanceDashboard() {
         return new Intl.NumberFormat('en-IN', {
             style: 'currency',
             currency: 'INR',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
         }).format(amount);
     };
     
@@ -219,3 +226,5 @@ export function FinanceDashboard() {
     </div>
   );
 }
+
+    
