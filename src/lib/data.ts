@@ -1,10 +1,35 @@
 
 import type { UserRole } from "@/hooks/use-current-user";
-import type { Student as StudentType } from "@/components/dashboard/students/student-table";
-import type { Staff as StaffType } from "@/components/dashboard/staff/staff-table";
 
-export type Student = StudentType;
-export type Staff = StaffType;
+export type Student = {
+  id: string
+  name: string;
+  email: string;
+  phone: string;
+  gender: "male" | "female" | "other";
+  joinDate: string;
+  status: "Active" | "Inactive" | "Suspended";
+};
+
+export type Staff = {
+  id: string
+  name: string
+  email: string
+  phone: string;
+  department: string
+  status: "Active" | "On Leave" | "Inactive"
+}
+
+export type Course = {
+    time: string;
+    class: string;
+    location: string;
+}
+
+export type Holiday = {
+    date: string;
+    name: string;
+}
 
 
 export const userProfiles: Record<UserRole, { name: string; email: string; avatar: string }> = {
@@ -37,8 +62,8 @@ export const userProfiles: Record<UserRole, { name: string; email: string; avata
 
 // Default data is now minimal and clean.
 export const studentsData: Student[] = [
-  { id: "STU001", name: "Om Sahoo", gender: "male", email: "osahoo9178@gmail.com", phone: "(123) 456-7890", joinDate: "2023-01-15", status: "Active" as const },
-  { id: "STU002", name: "Pramila", gender: "female", email: "pramila@example.com", phone: "(123) 555-7895", joinDate: "2023-03-28", status: "Active" as const }
+  { id: "STU001", name: "Om Sahoo", gender: "male", email: "osahoo9178@gmail.com", phone: "(123) 456-7890", joinDate: "2023-11-15", status: "Active" as const },
+  { id: "STU002", name: "Pramila", gender: "female", email: "pramila@example.com", phone: "(123) 555-7895", joinDate: "2023-11-28", status: "Active" as const }
 ];
 
 export const staffData: Staff[] = [
@@ -47,13 +72,13 @@ export const staffData: Staff[] = [
 ];
 
 
-export const teacherScheduleData = [
+export const teacherScheduleData: Course[] = [
     { time: '09:00 - 10:30', class: 'Calculus I', location: 'Room 301' },
     { time: '11:00 - 12:30', class: 'Linear Algebra', location: 'Room 302' },
     { time: '14:00 - 15:30', class: 'Advanced Statistics', location: 'Lab 5' },
 ];
 
-export const holidays = [
+export const holidays: Holiday[] = [
     { date: '2024-07-04', name: 'Independence Day' },
     { date: '2024-09-02', name: 'Labor Day' },
 ];

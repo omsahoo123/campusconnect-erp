@@ -5,9 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Users, GraduationCap, Briefcase, Activity, FileText } from "lucide-react";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartConfig } from "@/components/ui/chart";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from "recharts";
-import { useState, useEffect, useCallback, useMemo } from "react";
-import { studentsData as defaultStudentsData, staffData as defaultStaffData, type Student } from "@/lib/data";
+import { useMemo } from "react";
 import { formatDistanceToNow, parseISO } from "date-fns";
+import { useAppData } from "@/context/app-data-provider";
 
 const chartConfig: ChartConfig = {
     admissions: {
@@ -16,26 +16,7 @@ const chartConfig: ChartConfig = {
     },
 };
 
-interface StudentApplication {
-  id: string;
-  name: string;
-  status: 'Pending';
-}
-interface TeacherApplication {
-  id: string;
-  name: string;
-  status: 'Pending';
-}
-
-type ActivityLogItem = {
-    type: 'NEW_STUDENT' | 'NEW_TEACHER' | 'SYSTEM_START';
-    payload: {
-        name: string;
-    };
-    timestamp: string;
-}
-
-const getActivityIcon = (type: ActivityLogItem['type']) => {
+const getActivityIcon = (type: string) => {
     switch (type) {
         case 'NEW_STUDENT': return <Users className="h-4 w-4" />;
         case 'NEW_TEACHER': return <Briefcase className="h-4 w-4" />;
@@ -43,7 +24,7 @@ const getActivityIcon = (type: ActivityLogItem['type']) => {
     }
 }
 
-const getActivityMessage = (item: ActivityLogItem) => {
+const getActivityMessage = (item: any) => {
     switch (item.type) {
         case 'NEW_STUDENT': return `New student <span class="font-medium">${item.payload.name}</span> was enrolled.`;
         case 'NEW_TEACHER': return `New teacher <span class="font-medium">${item.payload.name}</span> was hired.`;
@@ -53,72 +34,19 @@ const getActivityMessage = (item: ActivityLogItem) => {
 }
 
 export function AdminDashboard() {
-  const [studentCount, setStudentCount] = useState(0);
-  const [staffCount, setStaffCount] = useState(0);
-  const [newAdmissionsCount, setNewAdmissionsCount] = useState(0);
-  const [teacherAppsCount, setTeacherAppsCount] = useState(0);
-  const [activityLog, setActivityLog] = useState<ActivityLogItem[]>([]);
-  const [students, setStudents] = useState<Student[]>([]);
-
-  const loadData = useCallback(() => {
-    try {
-      if (typeof window !== 'undefined') {
-        const storedStudents = localStorage.getItem('studentsData');
-        const studentList: Student[] = storedStudents ? JSON.parse(storedStudents) : defaultStudentsData;
-        setStudents(studentList);
-        setStudentCount(studentList.length);
-
-        const storedStaff = localStorage.getItem('staffData');
-        const staff = storedStaff ? JSON.parse(storedStaff) : defaultStaffData;
-        setStaffCount(staff.length);
-        
-        const storedStudentApps = localStorage.getItem('studentApplications');
-        const studentApps: StudentApplication[] = storedStudentApps ? JSON.parse(storedStudentApps) : [];
-        setNewAdmissionsCount(studentApps.filter(app => app.status === 'Pending').length);
-        
-        const storedTeacherApps = localStorage.getItem('teacherApplications');
-        const teacherApps: TeacherApplication[] = storedTeacherApps ? JSON.parse(storedTeacherApps) : [];
-        setTeacherAppsCount(teacherApps.filter(app => app.status === 'Pending').length);
-
-        const storedActivityLog = localStorage.getItem('activityLog');
-        const log = storedActivityLog ? JSON.parse(storedActivityLog) : [{ type: 'SYSTEM_START', payload: { name: 'System' }, timestamp: new Date().toISOString() }];
-        setActivityLog(log.slice().reverse()); // Show most recent first
-
-      }
-    } catch (error) {
-      console.error("Failed to load data from localStorage", error);
-      setStudentCount(defaultStudentsData.length);
-      setStaffCount(defaultStaffData.length);
-      setNewAdmissionsCount(0);
-      setTeacherAppsCount(0);
-      setActivityLog([]);
-      setStudents(defaultStudentsData);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadData();
-
-    const handleStorageChange = (event: StorageEvent) => {
-      if (['studentsData', 'staffData', 'studentApplications', 'teacherApplications', 'activityLog'].includes(event.key || '')) {
-        loadData();
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
-  }, [loadData]);
+  const { students, staff, studentApplications, teacherApplications, activityLog } = useAppData();
 
   const admissionsData = useMemo(() => {
     const monthlyAdmissions: { [key: string]: number } = {};
 
     students.forEach(student => {
-        const joinDate = parseISO(student.joinDate);
-        const month = joinDate.toLocaleString('default', { month: 'short', year: '2-digit' });
-        monthlyAdmissions[month] = (monthlyAdmissions[month] || 0) + 1;
+        try {
+            const joinDate = parseISO(student.joinDate);
+            const month = joinDate.toLocaleString('default', { month: 'short', year: '2-digit' });
+            monthlyAdmissions[month] = (monthlyAdmissions[month] || 0) + 1;
+        } catch (error) {
+            console.error(`Invalid joinDate for student ${student.id}: ${student.joinDate}`);
+        }
     });
 
     const last6Months = Array.from({ length: 6 }, (_, i) => {
@@ -148,7 +76,7 @@ export function AdminDashboard() {
             <GraduationCap className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{studentCount}</div>
+            <div className="text-2xl font-bold">{students.length}</div>
             <p className="text-xs text-muted-foreground">Currently enrolled</p>
           </CardContent>
         </Card>
@@ -158,7 +86,7 @@ export function AdminDashboard() {
             <Briefcase className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{staffCount}</div>
+            <div className="text-2xl font-bold">{staff.length}</div>
             <p className="text-xs text-muted-foreground">Active and on leave</p>
           </CardContent>
         </Card>
@@ -168,7 +96,7 @@ export function AdminDashboard() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+{newAdmissionsCount}</div>
+            <div className="text-2xl font-bold">+{studentApplications.length}</div>
             <p className="text-xs text-muted-foreground">New admissions</p>
           </CardContent>
         </Card>
@@ -178,7 +106,7 @@ export function AdminDashboard() {
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+{teacherAppsCount}</div>
+            <div className="text-2xl font-bold">+{teacherApplications.length}</div>
             <p className="text-xs text-muted-foreground">New job applications</p>
           </CardContent>
         </Card>
