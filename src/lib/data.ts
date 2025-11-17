@@ -35,6 +35,7 @@ export const userProfiles: Record<UserRole, { name: string; email: string; avata
   }
 };
 
+// Default data is now minimal and clean.
 export const studentsData: Student[] = [
   { id: "STU001", name: "Om Sahoo", gender: "male", email: "osahoo9178@gmail.com", phone: "(123) 456-7890", joinDate: "2023-01-15", status: "Active" as const },
   { id: "STU002", name: "Pramila", gender: "female", email: "pramila@example.com", phone: "(123) 555-7895", joinDate: "2023-03-28", status: "Active" as const }

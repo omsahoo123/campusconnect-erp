@@ -35,14 +35,11 @@ const navItems = {
     { href: "/dashboard", icon: <LayoutDashboard />, label: "Dashboard", tooltip: "Dashboard" },
     { href: "/dashboard/courses", icon: <BookOpen />, label: "My Courses", tooltip: "Courses" },
     { href: "/dashboard/grades", icon: <GraduationCap />, label: "Grades", tooltip: "Grades" },
-    { href: "/dashboard/fees", icon: <Banknote />, label: "Fees", tooltip: "Fees" },
+    { href: "/dashboard/finance", icon: <Banknote />, label: "Fees", tooltip: "Fees" },
     { href: "/dashboard/settings", icon: <Settings />, label: "Profile", tooltip: "Profile" },
   ],
   finance: [
-    { href: "/dashboard", icon: <LayoutDashboard />, label: "Dashboard", tooltip: "Dashboard" },
-    { href: "/dashboard/fee-collection", icon: <Banknote />, label: "Fee Collection", tooltip: "Fee Collection" },
-    { href: "/dashboard/expenses", icon: <Users />, label: "Expenses", tooltip: "Expenses" },
-    { href: "/dashboard/reports", icon: <GraduationCap />, label: "Reports", tooltip: "Reports" },
+    { href: "/dashboard/finance", icon: <Banknote />, label: "Fee Management", tooltip: "Fee Management" },
     { href: "/dashboard/settings", icon: <Settings />, label: "Settings", tooltip: "Settings" },
   ],
   hostel: [

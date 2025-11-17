@@ -37,17 +37,6 @@ export const defaultHostels: Hostel[] = [
   }
 ];
 
-
-// This is now derived from defaultRooms occupants
-export const defaultHostelStudents: string[] = [];
-
-// This will now be calculated from the rooms data, but we can keep it for other components if needed.
-export const defaultRoomStatusData = [
-  { floor: "Floor 1", occupied: 0, total: 6 }, // Based on 3 rooms of 2 capacity
-  { floor: "Floor 2", occupied: 0, total: 4 }, // Based on 2 rooms of 2 capacity
-  { floor: "Floor 3", occupied: 0, total: 3 }, // Based on 1 room of 3 capacity
-];
-
 export const defaultMessData = {
     status: "Active",
     nextMeal: "Lunch",

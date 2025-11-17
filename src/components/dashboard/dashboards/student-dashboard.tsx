@@ -4,11 +4,12 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookOpen, CalendarCheck, Clock, CircleDollarSign, CheckCircle, File as FileIcon } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import { holidays as defaultHolidays, studentsData } from "@/lib/data";
+import { holidays as defaultHolidays, studentsData, userProfiles } from "@/lib/data";
 import { useEffect, useState, useMemo } from "react";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { Calendar } from "@/components/ui/calendar";
 import { format, differenceInDays, parseISO } from 'date-fns';
+import { type AllStudentFees, type StudentFeeStatus } from "@/lib/finance";
 
 type Enrollment = {
     [courseName: string]: string[]; // student IDs
@@ -51,20 +52,26 @@ export function StudentDashboard() {
     const [studentAttendance, setStudentAttendance] = useState<{[date: string]: boolean}>({});
     const [holidays, setHolidays] = useState<Holiday[]>([]);
     const [deadlines, setDeadlines] = useState<Deadline[]>([]);
+    const [feeStatus, setFeeStatus] = useState<StudentFeeStatus | null>(null);
 
-    const studentProfile = useMemo(() => studentsData.find(s => s.email === 'osahoo9178@gmail.com'), []);
+    const studentProfile = useMemo(() => {
+        if (!role) return null;
+        const profile = userProfiles[role];
+        return studentsData.find(s => s.email === profile.email);
+    }, [role]);
 
     useEffect(() => {
-        const storedHolidays = localStorage.getItem('holidays');
-        setHolidays(storedHolidays ? JSON.parse(storedHolidays) : defaultHolidays);
-
         const handleStorageChange = (event: StorageEvent) => {
             if (event.key === 'holidays') {
                 setHolidays(JSON.parse(event.newValue || '[]'));
             }
-             if (event.key === 'studentDeadlines' && studentProfile) {
+            if (event.key === 'studentDeadlines' && studentProfile) {
                 const allDeadlines: StudentDeadlines = JSON.parse(event.newValue || '{}');
                 setDeadlines(allDeadlines[studentProfile.id] || []);
+            }
+            if (event.key === 'studentFees' && studentProfile) {
+                const allFees: AllStudentFees = JSON.parse(event.newValue || '{}');
+                setFeeStatus(allFees[studentProfile.id] || null);
             }
         };
 
@@ -79,6 +86,10 @@ export function StudentDashboard() {
             const storedEnrollments = localStorage.getItem('courseEnrollments');
             const storedAttendance = localStorage.getItem('allAttendanceData');
             const storedDeadlines = localStorage.getItem('studentDeadlines');
+            const storedHolidays = localStorage.getItem('holidays');
+            const storedFees = localStorage.getItem('studentFees');
+
+            setHolidays(storedHolidays ? JSON.parse(storedHolidays) : defaultHolidays);
 
             // Calculate enrolled courses
             if (storedEnrollments) {
@@ -128,6 +139,12 @@ export function StudentDashboard() {
                 const allDeadlines: StudentDeadlines = JSON.parse(storedDeadlines);
                 setDeadlines(allDeadlines[studentId] || []);
             }
+
+            // Load fee status
+            if (storedFees) {
+                const allFees: AllStudentFees = JSON.parse(storedFees);
+                setFeeStatus(allFees[studentId] || null);
+            }
         }
     }, [role, studentProfile]);
 
@@ -154,6 +171,13 @@ export function StudentDashboard() {
             return dueDate <= nextWeek;
         }).length;
     }, [upcomingDeadlines]);
+    
+    const feeBalance = useMemo(() => {
+        if (!feeStatus) return 0;
+        const totalDue = feeStatus.totalTuition + feeStatus.totalHostelFee;
+        const totalPaid = feeStatus.payments.reduce((sum, p) => sum + p.amount, 0);
+        return totalDue - totalPaid;
+    }, [feeStatus]);
 
 
     const modifiers = {
@@ -190,7 +214,7 @@ export function StudentDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{enrolledCoursesCount}</div>
-            <p className="text-xs text-muted-foreground">for Spring 2024</p>
+            <p className="text-xs text-muted-foreground">for this semester</p>
           </CardContent>
         </Card>
         <Card>
@@ -219,9 +243,15 @@ export function StudentDashboard() {
             <CircleDollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold flex items-center gap-2 text-green-600">
-                <CheckCircle /> Paid
-            </div>
+             {feeBalance <= 0 ? (
+                 <div className="text-2xl font-bold flex items-center gap-2 text-green-600">
+                    <CheckCircle /> Paid Up
+                </div>
+             ) : (
+                <div className="text-2xl font-bold text-destructive">
+                    {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(feeBalance)} Due
+                </div>
+             )}
             <p className="text-xs text-muted-foreground">Next due on 1st Aug 2024</p>
           </CardContent>
         </Card>
