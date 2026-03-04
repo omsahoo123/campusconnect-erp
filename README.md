@@ -1,6 +1,6 @@
-# Firebase Studio
+# CampusConnect ERP
 
-This is a NextJS starter in Firebase Studio.
+This is a Next.js application for CampusConnect ERP.
 
 ## Getting Started
 
